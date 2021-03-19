@@ -4,12 +4,14 @@ import cx_Oracle
 from flask import Flask
 import json
 
-os.environ['PYTHON_USERNAME'] = 'user' # update
-os.environ['PYTHON_PASSWORD'] = 'pass' # update
+import keys
+
+os.environ['PYTHON_USERNAME'] = keys.db_user
+os.environ['PYTHON_PASSWORD'] = keys.db_password
 os.environ['PYTHON_CONNECTSTRING'] = 'oracle.cise.ufl.edu:1521/ORCL'
 os.environ['PORT'] = '8080'
 
-cx_Oracle.init_oracle_client(lib_dir=r"c:\oracle\instantclient_19_10") # update
+cx_Oracle.init_oracle_client(lib_dir=keys.cx_oracle_path)
 
 def init_session(connection, requestedTag_ignored):
     cursor = connection.cursor()
