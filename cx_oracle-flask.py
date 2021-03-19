@@ -1,3 +1,8 @@
+# first run:
+# env\Scripts\activate
+# set FLASK_APP=cx_oracle-flask.py
+# flask run
+
 import os
 import sys
 import cx_Oracle
