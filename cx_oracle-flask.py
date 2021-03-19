@@ -44,10 +44,11 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return "Index"
+    return "<h1> Hello, World </h1>"
 
 @app.route('/table/<string:table>')
 def show_table(table):
+    pool = start_pool()
     connection = pool.acquire()
     cursor = connection.cursor()
     print(table)
@@ -56,6 +57,4 @@ def show_table(table):
     return json.dumps(r)
 
 if __name__ == '__main__':
-    pool = start_pool()
-
     app.run(port=int(os.environ.get('PORT', '8080')))
