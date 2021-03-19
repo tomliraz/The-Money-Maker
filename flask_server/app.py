@@ -1,3 +1,6 @@
+#To start run 'venv\Scripts\activate'
+#Then 'flask run'
+
 import keys
 
 import cx_Oracle
