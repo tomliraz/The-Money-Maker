@@ -12,13 +12,13 @@ tbody > tr:hover {
     width: 100%;
     height: calc(100vh - 120px);
     padding: 1em;
+    cursor: crosshair;
 }
 
 iframe {
     width: 100%;
     height: calc(100vh - 120px);
     border: 0;
-    cursor: crosshair;
 }
 
 #linechart {
