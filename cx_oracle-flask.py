@@ -2,14 +2,15 @@ import os
 import sys
 import cx_Oracle
 from flask import Flask
+from flask_cors import CORS
 import json
 
 os.environ['PYTHON_USERNAME'] = 'kyledampier' # update
 os.environ['PYTHON_PASSWORD'] = 'Camo1019' # update
 os.environ['PYTHON_CONNECTSTRING'] = 'oracle.cise.ufl.edu:1521/ORCL'
-os.environ['PORT'] = '8080'
+os.environ['PORT'] = '8081'
 
-cx_Oracle.init_oracle_client(lib_dir=r"c:\oracle\instantclient_19_10") # update
+cx_Oracle.init_oracle_client(lib_dir=r"/Users/kyledampier/Documents/School/CIS4301/instantclient_19_8") # update
 
 def init_session(connection, requestedTag_ignored):
     cursor = connection.cursor()
@@ -39,6 +40,7 @@ def start_pool():
     return pool
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/')
 def index():

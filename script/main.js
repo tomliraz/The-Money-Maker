@@ -3,6 +3,15 @@ document.addEventListener('DOMContentLoaded', function() {
     $("#testing-symbol").html("JS");
     $("#testing-title").html("loaded using JS");
 
+    $.ajax({
+        url: base_url + "table/country",
+        type: "GET",
+        crossDomain: true,
+        dataType: "json",
+        success: function(result) {
+            console.log(result);
+        }
+    });
     
 }, false);
 
@@ -39,3 +48,6 @@ function loadView(view) {
     reset_active();
     $("#" + view).attr("class", "nav-link active");
 }
+
+const base_url = "http://localhost:8081/"
+
