@@ -25,7 +25,7 @@ function drawChart() {
 
     var options = {
         chart: {
-            title: 'AAPL',
+            title: 'Seasonal Trend',
             subtitle: 'Apple Inc.'
         },
         width: "100%",

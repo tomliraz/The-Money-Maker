@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
         dataType: "json",
         success: function(result) {
             console.log(result);
+            $("#test-data").html(result);
         }
     });
     
