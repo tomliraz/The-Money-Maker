@@ -13,7 +13,6 @@
   <!-- Bootstrap core CSS -->
   <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <link href="style/main.css" rel="stylesheet">
-  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
   <script type="text/javascript" src="script/main.js"></script>
 
 </head>
@@ -51,31 +50,61 @@
   <!-- Page Content -->
   <div class="container-fluid">
     <div class="row">
-      <div class="col-3 side-nav" style="height: 90vh; padding: 0.5em;">
-        <h2>Stonks</h2>
-        <hr>
-        <table>
+      <div class="col-3 side-nav p-0">
+        <h1 class="px-3 pt-2">Stocks</h1>
+        <table class="table">
+          <thead class="thead">
+            <tr>
+              <th scope="col" class="text-right">Symbol</th>
+              <th scope="col">Name</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr class="selected">
+              <th scope="row">AAPL</th>
+              <td>Apple Inc.</td>
+            </tr>
+            <tr>
+              <th scope="row">GME</th>
+              <td>Gamestop</td>
+            </tr>
+            <tr>
+              <th scope="row">AMC</th>
+              <td>AMC</td>
+            </tr>
+            <tr>
+              <th scope="row">JJ</th>
+              <td>Johnson & Johnson</td>
+            </tr>
+            <tr id="testing">
+              <th id="testing-symbol"></th>
+              <td id="testing-title"></td>
+            </tr>
+          </tbody>
         </table>
-        <div id="test">
-
-        </div>
       </div>
       <div class="col-9 chart">
         <ul class="nav nav-tabs">
           <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="#">Stock Trend</a>
+            <a class="nav-link active" onclick="loadView('Stock')" id="Stock">Stock Trend</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">MACD</a>
+            <a class="nav-link" onclick="loadView('Corr')" id="Corr">Correlation</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="#">Link</a>
+            <a class="nav-link" onclick="loadView('Season')" id="Season">Seasonal Trend</a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link" onclick="loadView('Vol')" id="Vol">Volatility</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Custom</a>
+            <a class="nav-link" onclick="loadView('MACD')" id="MACD">MACD</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" onclick="loadView('Google')" id="Google">Google Trend</a>
           </li>
         </ul>
-        <div id="linechart" class="chart"></div>
+        <iframe id="main-frame" src="/charts/StockTrend.html"></iframe>
       </div> 
     </div>
   </div>
