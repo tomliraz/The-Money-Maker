@@ -1,14 +1,29 @@
 
+function generateRow(id, symbol, name, weight) {
+    var output = `<tr>
+    <th scope="row">${symbol}</th>
+    <td>${name}</td>
+    </tr>`;
+    return output; 
+}
+
+console.log(generateRow(1, "AAPL", "Apple Inc.", 0.011));
+
 document.addEventListener('DOMContentLoaded', function() {
 
     $.ajax({
-        url: base_url + "table/country",
+        url: base_url + "table/stock_list",
         type: "GET",
         crossDomain: true,
         dataType: "json",
         success: function(result) {
             console.log(result);
-            $("#test-data").html(result);
+            for (var i = 0; i < result.length; i++)
+            {
+                let temp = result[i];
+                let generated = generateRow(temp[0], temp[2], temp[1], temp[3]);
+                $("#table-body").append(generated);
+            }
         }
     });
     
