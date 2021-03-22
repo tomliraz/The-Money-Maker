@@ -4,8 +4,8 @@ import cx_Oracle
 from flask import Flask
 import json
 
-os.environ['PYTHON_USERNAME'] = 'user' # update
-os.environ['PYTHON_PASSWORD'] = 'pass' # update
+os.environ['PYTHON_USERNAME'] = 'kyledampier' # update
+os.environ['PYTHON_PASSWORD'] = 'Camo1019' # update
 os.environ['PYTHON_CONNECTSTRING'] = 'oracle.cise.ufl.edu:1521/ORCL'
 os.environ['PORT'] = '8080'
 
