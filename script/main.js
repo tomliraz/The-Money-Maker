@@ -1,7 +1,5 @@
 
 document.addEventListener('DOMContentLoaded', function() {
-    $("#testing-symbol").html("JS");
-    $("#testing-title").html("loaded using JS");
 
     $.ajax({
         url: base_url + "table/country",
