@@ -12,7 +12,7 @@ console.log(generateRow(1, "AAPL", "Apple Inc.", 0.011));
 document.addEventListener('DOMContentLoaded', function() {
 
     $.ajax({
-        url: base_url + "table/stock_list",
+        url: base_url + "table/AAPL",
         type: "GET",
         crossDomain: true,
         dataType: "json",
@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+   
 }, false);
 
 

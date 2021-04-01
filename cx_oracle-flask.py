@@ -3,6 +3,8 @@ import sys
 import cx_Oracle
 from flask import Flask
 from flask_cors import CORS
+from bson import json_util
+import datetime
 import json
 import keys
 
@@ -43,20 +45,54 @@ def start_pool():
 app = Flask(__name__)
 CORS(app)
 
+def datetimeConverter(o):
+    if isinstance(o, datetime.datetime):
+        return o.__str__()
+
 @app.route('/')
 def index():
     return "Index"
-
-@app.route('/table/<string:table>')
-def show_table(table):
+#company name, interval, and time period up three
+@app.route('/trend/<string:Stock1>/<string:interval>/<string:start>/<string:stop>')
+@app.route('/trend/<string:Stock1>/<string:Stock2>/<string:interval>/<string:start>/<string:stop>')
+@app.route('/trend/<string:Stock1>/<string:Stock2>/<string:Stock3>/<string:interval>/<string:start>/<string:stop>')
+def get_trend(Stock1, interval, start, stop, Stock2='', Stock3=''):
     connection = pool.acquire()
     cursor = connection.cursor()
-    print(table)
-    cursor.execute("select * from " + table)
+    print(id)
+    if (Stock3 != ''):
+        cursor.execute("select * from Stock WHERE StockID in ('" + Stock1 + "','" + Stock2 + "','" + Stock3 + "') AND Market_Date >= to_date('"+start+"') AND Market_Date <= to_date('"+stop+"')")
+    elif (Stock2 != ''):
+        cursor.execute("select * from Stock WHERE StockID = '" + id + "'")
+    else: 
+        cursor.execute("select * from Stock WHERE StockID = '" + id + "'")
     r = cursor.fetchall()
-    return json.dumps(r)
+    print(r)
+    return json.dumps(r, default=datetimeConverter)
+
+#correlation coefficient
+#2 names, granularity, time period
+@app.route('/correlation/<string:Stock>')
+def get_correlation(Stock):
+    connection = pool.acquire()
+    cursor = connection.cursor()
+    print(id)
+    cursor.execute("select * from Stock WHERE StockID = '" + Stock + "'")
+    r = cursor.fetchall()
+    return json.dumps(r, default=json_util.default)
+
+#seasonal trends
+#time interval, company name, time period but yearly
+@app.route('/seasonal/<string:id>')
+def get_seasonal(id):
+    connection = pool.acquire()
+    cursor = connection.cursor()
+    print(id)
+    cursor.execute("select * from Stock WHERE StockID = '" + id + "'")
+    r = cursor.fetchall()
+    return json.dumps(r, default=json_util.default)
 
 if __name__ == '__main__':
     pool = start_pool()
 
-    app.run(port=int(os.environ.get('PORT', '8080')))
+    app.run(port=int(os.environ.get('PORT', '8081')))
