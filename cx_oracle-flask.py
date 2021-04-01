@@ -56,18 +56,32 @@ def index():
 @app.route('/trend/<string:Stock1>/<string:interval>/<string:start>/<string:stop>')
 @app.route('/trend/<string:Stock1>/<string:Stock2>/<string:interval>/<string:start>/<string:stop>')
 @app.route('/trend/<string:Stock1>/<string:Stock2>/<string:Stock3>/<string:interval>/<string:start>/<string:stop>')
-def get_trend(Stock1, interval, start, stop, Stock2='', Stock3=''):
+def get_trend(Stock1, start, stop, Stock2='', Stock3='', interval='D'):
     connection = pool.acquire()
     cursor = connection.cursor()
-    print(id)
+    inner = ""
     if (Stock3 != ''):
-        cursor.execute("select * from Stock WHERE StockID in ('" + Stock1 + "','" + Stock2 + "','" + Stock3 + "') AND Market_Date >= to_date('"+start+"') AND Market_Date <= to_date('"+stop+"')")
+        inner = f"SELECT * FROM LIRAZ.Stock_Data WHERE Stock_ID in ('{Stock1}','{Stock2}', '{Stock3}') AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD')"
     elif (Stock2 != ''):
-        cursor.execute("select * from Stock WHERE StockID = '" + id + "'")
+        inner = f"SELECT * FROM LIRAZ.Stock_Data WHERE Stock_ID in ('{ Stock1 }','{ Stock2 }') AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD')" 
     else: 
-        cursor.execute("select * from Stock WHERE StockID = '" + id + "'")
+        inner = f"SELECT * FROM LIRAZ.Stock_Data WHERE Stock_ID in ('{ Stock1 }') AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD')" 
+    
+    outer = ""
+    if (interval == 'Y'):
+        outer = f"SELECT Stock_ID, EXTRACT(year FROM Market_Date) as yr, AVG(ADJ_Close) FROM ({ inner }) GROUP BY Stock_ID, EXTRACT(year FROM Market_Date) ORDER BY yr"
+    elif (interval == 'M'):
+        outer = f"SELECT Stock_ID, EXTRACT(month FROM Market_Date) as month, EXTRACT(year FROM Market_Date) as yr, AVG(ADJ_Close) FROM ({ inner }) GROUP BY Stock_ID, EXTRACT(month FROM Market_Date), EXTRACT(year FROM Market_Date)"
+    elif (interval == 'Q'):
+        outer = f"SELECT Stock_ID, Quarter, Year, Avg(Adj_Close) FROM ( SELECT Stock_ID, Adj_close, CEIL(TO_NUMBER(TO_CHAR(Market_Date, 'MM'))/3) Quarter, TO_CHAR(Market_Date, 'YYYY') Year FROM ({inner}) ) GROUP BY Stock_ID, Quarter, Year ORDER BY Stock_ID, Year, Quarter"
+    elif (interval == 'W'):
+        outer = f"SELECT Stock_ID, Week, Year, AVG(Adj_Close) FROM (SELECT Stock_ID, Adj_close, TO_CHAR(Market_Date, 'WW') Week,  TO_CHAR(Market_Date, 'YYYY') Year, Market_Date FROM ({inner})) GROUP BY Stock_ID, week, year ORDER BY Stock_ID, Year, Week"
+    elif (interval == 'D'):
+        outer = f"SELECT Stock_ID, ADJ_Close, Market_Date FROM ({ inner })"
+    print(outer)
+    cursor.execute(outer)
     r = cursor.fetchall()
-    print(r)
+    #print(r)
     return json.dumps(r, default=datetimeConverter)
 
 #correlation coefficient
@@ -77,18 +91,21 @@ def get_correlation(Stock):
     connection = pool.acquire()
     cursor = connection.cursor()
     print(id)
-    cursor.execute("select * from Stock WHERE StockID = '" + Stock + "'")
+    cursor.execute(f"select * FROM LIRAZ.Stock_Data WHERE Stock_ID = '{ Stock }'")
     r = cursor.fetchall()
     return json.dumps(r, default=json_util.default)
 
 #seasonal trends
-#time interval, company name, time period but yearly
-@app.route('/seasonal/<string:id>')
-def get_seasonal(id):
+#company name, time period but yearly, time interval
+@app.route('/seasonal/<string:id>/<int:period>/<string:start>/<string:stop>')
+def get_seasonal(id, period, start, stop):
     connection = pool.acquire()
     cursor = connection.cursor()
-    print(id)
-    cursor.execute("select * from Stock WHERE StockID = '" + id + "'")
+
+    
+
+
+    cursor.execute(f"select * FROM LIRAZ.Stock_Data WHERE Stock_ID = '{ id }'")
     r = cursor.fetchall()
     return json.dumps(r, default=json_util.default)
 
