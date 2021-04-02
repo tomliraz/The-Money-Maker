@@ -3,7 +3,7 @@ import sys
 import cx_Oracle
 from flask import Flask
 from flask_cors import CORS
-from bson import json_util
+#from bson import json_util
 import datetime
 import json
 import keys
@@ -84,16 +84,37 @@ def get_trend(Stock1, start, stop, Stock2='', Stock3='', interval='D'):
     #print(r)
     return json.dumps(r, default=datetimeConverter)
 
-#correlation coefficient
+#correlation coefficient correlation
 #2 names, granularity, time period
-@app.route('/correlation/<string:Stock>')
-def get_correlation(Stock):
+@app.route('/correlation/<string:Stock1>/<string:Stock2>/<string:interval>/<string:start>/<string:stop>')
+def get_correlation(Stock1, Stock2, start, stop, interval='D'):
     connection = pool.acquire()
     cursor = connection.cursor()
-    print(id)
-    cursor.execute(f"select * FROM LIRAZ.Stock_Data WHERE Stock_ID = '{ Stock }'")
+    
+    stockDataQuery = f"(SELECT s1.stock_ID Stock1, s1.Adj_Close Price1, s2.Stock_ID Stock2, s2.Adj_Close Price2, s1.Market_Date Market_Date FROM Stock_Data s1 JOIN Stock_Data s2 ON s1.Market_Date = s2.Market_Date Where s1.Stock_ID = '{Stock1}' AND s2.Stock_ID = '{Stock2}' AND s1.Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND s1.Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"
+    
+    intervalQuery = f""
+    if (interval == 'Y'):
+        intervalQuery = f"extract(year from Market_Date)" #example: http://localhost:8081/correlation/AAPL/MSFT/M/2001-01-01/2003-01-01
+    elif (interval == 'M'):
+        intervalQuery = f"extract(month from Market_Date)" #Does not work
+    #elif (interval == 'Q'):
+    
+    #elif (interval == 'W'):
+    
+    #elif (interval == 'D'):
+        
+    intervalAverages = f"SELECT Stock1, AVG(Price1) avg_price1, Stock2, AVG(Price2) avg_price2, { intervalQuery } AS Interval FROM ({ stockDataQuery }) GROUP BY Stock1, Stock2, { intervalQuery }"
+
+    summedDemeanedPrices = f"WITH avgs AS ({ intervalAverages }), stocks AS ({ stockDataQuery }) SELECT avgs.Stock1, avgs.Stock2, (SUM((Price1 - avgs.AVG_Price1) * (Price2 - avgs.AVG_Price2)))/(COUNT(Price1) - 1) AS cov, avgs.Interval FROM avgs,stocks  WHERE { intervalQuery } = avgs.Interval GROUP BY avgs.Stock1, avgs.Stock2, avgs.Interval"
+
+    stdDevProduct = f"WITH stocks AS ({ stockDataQuery }) SELECT Stock1, Stock2, STDDEV(Price1)* STDDEV(Price2) AS stddev_Product, { intervalQuery } AS Interval FROM stocks GROUP BY Stock1, Stock2, { intervalQuery }"
+
+    correlation = f"SELECT numerator.Interval, Cov / stddev_Product FROM ({ summedDemeanedPrices }) numerator, ({ stdDevProduct }) denominator WHERE numerator.Interval = denominator.Interval"
+
+    cursor.execute(correlation)
     r = cursor.fetchall()
-    return json.dumps(r, default=json_util.default)
+    return json.dumps(r, default=datetimeConverter)
 
 #seasonal trends
 #company name, time period but yearly, time interval
@@ -101,9 +122,6 @@ def get_correlation(Stock):
 def get_seasonal(id, period, start, stop):
     connection = pool.acquire()
     cursor = connection.cursor()
-
-    
-
 
     cursor.execute(f"select * FROM LIRAZ.Stock_Data WHERE Stock_ID = '{ id }'")
     r = cursor.fetchall()
