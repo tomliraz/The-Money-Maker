@@ -60,25 +60,47 @@ def get_trend(Stock1, start, stop, Stock2='', Stock3='', interval='D'):
     connection = pool.acquire()
     cursor = connection.cursor()
     inner = ""
+    select = ""
+    stocks = ""
     if (Stock3 != ''):
-        inner = f"SELECT * FROM LIRAZ.Stock_Data WHERE Stock_ID in ('{Stock1}','{Stock2}', '{Stock3}') AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD')"
+        inner = f"""(SELECT ADJ_Close as {Stock1}, Market_Date FROM LIRAZ.Stock_Data 
+WHERE Stock_ID = '{Stock1}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') 
+AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD')) NATURAL LEFT JOIN
+(SELECT ADJ_Close as {Stock2}, Market_Date FROM LIRAZ.Stock_Data 
+WHERE Stock_ID = '{Stock2}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') 
+AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD')) NATURAL LEFT JOIN
+(SELECT ADJ_Close as {Stock3}, Market_Date FROM LIRAZ.Stock_Data 
+WHERE Stock_ID = '{Stock3}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') 
+AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"""
+        select = f"AVG({Stock1}) as {Stock1}, AVG({Stock2}) as {Stock2}, AVG({Stock3}) as {Stock3}"
+        stocks = f"{Stock1}, {Stock2}, {Stock3}"
     elif (Stock2 != ''):
-        inner = f"SELECT * FROM LIRAZ.Stock_Data WHERE Stock_ID in ('{ Stock1 }','{ Stock2 }') AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD')" 
+        inner = f"""(SELECT ADJ_Close as {Stock1}, Market_Date FROM LIRAZ.Stock_Data 
+WHERE Stock_ID = '{Stock1}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') 
+AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD')) NATURAL LEFT JOIN
+(SELECT ADJ_Close as {Stock2}, Market_Date FROM LIRAZ.Stock_Data 
+WHERE Stock_ID = '{Stock2}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') 
+AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"""
+        select = f'AVG({Stock1}) as {Stock1}, AVG({Stock2}) as {Stock2}'
+        stocks = f"{Stock1}, {Stock2}"
     else: 
-        inner = f"SELECT * FROM LIRAZ.Stock_Data WHERE Stock_ID in ('{ Stock1 }') AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD')" 
-    
+        inner = f"""(SELECT ADJ_Close as {Stock1}, Market_Date FROM LIRAZ.Stock_Data 
+WHERE Stock_ID = '{Stock1}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') 
+AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"""
+        select = f'AVG({Stock1}) as {Stock1}'
+        stocks = f"{Stock1}"
     outer = ""
     if (interval == 'Y'):
-        outer = f"SELECT Stock_ID, EXTRACT(year FROM Market_Date) as yr, AVG(ADJ_Close) FROM ({ inner }) GROUP BY Stock_ID, EXTRACT(year FROM Market_Date) ORDER BY yr"
+        outer = f"SELECT EXTRACT(year FROM Market_Date) as year, {select} FROM ({ inner }) GROUP BY EXTRACT(year FROM Market_Date) ORDER BY year"
     elif (interval == 'M'):
-        outer = f"SELECT Stock_ID, EXTRACT(month FROM Market_Date) as month, EXTRACT(year FROM Market_Date) as yr, AVG(ADJ_Close) FROM ({ inner }) GROUP BY Stock_ID, EXTRACT(month FROM Market_Date), EXTRACT(year FROM Market_Date)"
+        outer = f"SELECT CONCAT(CONCAT(month,'-'),year), {stocks} FROM (SELECT EXTRACT(month FROM Market_Date) as month, EXTRACT(year FROM Market_Date) as year, {select} FROM ({ inner }) GROUP BY EXTRACT(month FROM Market_Date), EXTRACT(year FROM Market_Date))"
     elif (interval == 'Q'):
-        outer = f"SELECT Stock_ID, Quarter, Year, Avg(Adj_Close) FROM ( SELECT Stock_ID, Adj_close, CEIL(TO_NUMBER(TO_CHAR(Market_Date, 'MM'))/3) Quarter, TO_CHAR(Market_Date, 'YYYY') Year FROM ({inner}) ) GROUP BY Stock_ID, Quarter, Year ORDER BY Stock_ID, Year, Quarter"
+        outer = f"SELECT CONCAT(CONCAT(Quarter,'-'), Year), {select} FROM ( SELECT {stocks}, CEIL(TO_NUMBER(TO_CHAR(Market_Date, 'MM'))/3) Quarter, TO_CHAR(Market_Date, 'YYYY') Year FROM ({inner}) ) GROUP BY CONCAT(CONCAT(Quarter,'-'), Year) ORDER BY CONCAT(CONCAT(Quarter,'-'), Year)"
     elif (interval == 'W'):
-        outer = f"SELECT Stock_ID, Week, Year, AVG(Adj_Close) FROM (SELECT Stock_ID, Adj_close, TO_CHAR(Market_Date, 'WW') Week,  TO_CHAR(Market_Date, 'YYYY') Year, Market_Date FROM ({inner})) GROUP BY Stock_ID, week, year ORDER BY Stock_ID, Year, Week"
-    elif (interval == 'D'):
-        outer = f"SELECT Stock_ID, ADJ_Close, Market_Date FROM ({ inner })"
-    print(outer)
+        outer = f"SELECT WYR, {select} FROM (SELECT {stocks}, CONCAT(CONCAT(TO_CHAR(Market_Date, 'WW'), '-'),  TO_CHAR(Market_Date, 'YYYY')) as WYR, Market_Date FROM ({inner})) GROUP BY WYR ORDER BY WYR"
+    else:
+        outer = f"SELECT Market_Date, {select} FROM ({ inner }) GROUP BY Market_Date"
+    #print(outer)
     cursor.execute(outer)
     r = cursor.fetchall()
     #print(r)
