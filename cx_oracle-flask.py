@@ -3,7 +3,6 @@ import sys
 import cx_Oracle
 from flask import Flask
 from flask_cors import CORS
-from bson import json_util
 import datetime
 import json
 import keys
@@ -106,16 +105,53 @@ AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"""
     #print(r)
     return json.dumps(r, default=datetimeConverter)
 
-#correlation coefficient
+#correlation coefficient correlation
 #2 names, granularity, time period
-@app.route('/correlation/<string:Stock>')
-def get_correlation(Stock):
+@app.route('/correlation/<string:Stock1>/<string:Stock2>/<string:interval>/<string:start>/<string:stop>')
+def get_correlation(Stock1, Stock2, start, stop, interval='D'):
     connection = pool.acquire()
     cursor = connection.cursor()
-    print(id)
-    cursor.execute(f"select * FROM LIRAZ.Stock_Data WHERE Stock_ID = '{ Stock }'")
+    
+    stockDataQuery = f"(SELECT s1.stock_ID Stock1, s1.Adj_Close Price1, s2.Stock_ID Stock2, s2.Adj_Close Price2, s1.Market_Date Market_Date FROM LIRAZ.Stock_Data s1 JOIN LIRAZ.Stock_Data s2 ON s1.Market_Date = s2.Market_Date Where s1.Stock_ID = '{Stock1}' AND s2.Stock_ID = '{Stock2}' AND s1.Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND s1.Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"
+    
+    intervalQuery = f""
+    namedIntervalQuery=f""
+    nameOfInterval=f""
+    formatting =f""
+    if (interval == 'Y'):
+        intervalQuery = f"extract(year from Market_Date)" #example: http://localhost:8081/correlation/AAPL/MSFT/M/2001-01-01/2003-01-01
+        namedIntervalQuery = "extract(year from Market_Date) year"
+        nameOfInterval = f"year"
+        formatting = "year"
+    elif (interval == 'M'):
+        intervalQuery = f"extract(year from Market_Date), extract(month from Market_Date)" 
+        namedIntervalQuery = "extract(year from Market_Date) AS year, extract(month from Market_Date) AS month"
+        nameOfInterval = f"year, month"
+        formatting = "CONCAT(CONCAT(month,'-'), year)"
+    elif (interval == 'Q'):
+        intervalQuery = f"extract(year from Market_Date), CEIL(extract(month from Market_Date)/3)"
+        namedIntervalQuery = "extract(year from Market_Date) AS year, CEIL(extract(month from Market_Date)/3) AS quarter"
+        nameOfInterval = f"year, quarter"
+        formatting = "CONCAT(CONCAT(quarter,'-'), year)"
+    #elif (interval == 'W'): # not working
+    #    intervalQuery = f"extract(year from Market_Date), TO_CHAR(Market_Date, 'WW')"
+    #    namedIntervalQuery = "extract(year from Market_Date) AS year, TO_CHAR(Market_Date, 'WW') AS week"
+    #    nameOfInterval = f"year, week"
+    #elif (interval == 'D'):
+        
+    intervalAverages = f"SELECT Stock1, AVG(Price1) avg_price1, Stock2, AVG(Price2) avg_price2, { namedIntervalQuery } FROM ({ stockDataQuery }) GROUP BY Stock1, Stock2, { intervalQuery }"
+
+    summedDemeanedPrices = f"WITH avgs AS ({ intervalAverages }), stocks AS (SELECT Price1, Price2, {namedIntervalQuery} FROM ({ stockDataQuery })) SELECT Stock1, Stock2, (SUM((Price1 - AVG_Price1) * (Price2 - AVG_Price2)))/(COUNT(Price1) - 1) AS cov, {nameOfInterval} FROM avgs NATURAL JOIN stocks GROUP BY Stock1, Stock2, {nameOfInterval}"
+
+    stdDevProduct = f"WITH stocks AS ({ stockDataQuery }) SELECT Stock1, Stock2, STDDEV(Price1)* STDDEV(Price2) AS stddev_Product, { namedIntervalQuery } FROM stocks GROUP BY Stock1, Stock2, { intervalQuery }"
+
+    correlation = f"SELECT {nameOfInterval}, Cov / stddev_Product AS corr FROM ({ summedDemeanedPrices }) NATURAL JOIN ({ stdDevProduct })"
+
+    formattedCorrelation = f"SELECT {formatting}, corr FROM ({correlation})"
+
+    cursor.execute(formattedCorrelation)
     r = cursor.fetchall()
-    return json.dumps(r, default=json_util.default)
+    return json.dumps(r, default=datetimeConverter)
 
 #seasonal trends
 #company name, time period but yearly, time interval
@@ -124,13 +160,44 @@ def get_seasonal(id, period, start, stop):
     connection = pool.acquire()
     cursor = connection.cursor()
 
-    
-
-
     cursor.execute(f"select * FROM LIRAZ.Stock_Data WHERE Stock_ID = '{ id }'")
     r = cursor.fetchall()
     return json.dumps(r, default=json_util.default)
 
+
+@app.route('/volatility/<string:Stock1>/<string:interval>/<string:start>/<string:stop>')
+def get_volatility(Stock1, start, stop, interval='D'):
+    connection = pool.acquire()
+    cursor = connection.cursor()
+
+    intervalQuery = f""
+    namedIntervalQuery=f""
+    if (interval == 'Y'):
+        intervalQuery = f"extract(year from Market_Date)"
+        namedIntervalQuery = "extract(year from Market_Date) year"
+        formatting = "year"
+    elif (interval == 'M'):
+        intervalQuery = f"extract(year from Market_Date), extract(month from Market_Date)"
+        namedIntervalQuery = "extract(year from Market_Date) year, extract(month from Market_Date) month"
+        formatting = "CONCAT(CONCAT(month,'-'), year)"
+    elif (interval == 'Q'):
+        intervalQuery = f"extract(year from Market_Date), CEIL(extract(month from Market_Date)/3)"
+        namedIntervalQuery = "extract(year from Market_Date) year, CEIL(extract(month from Market_Date)/3) quarter"
+        formatting = "CONCAT(CONCAT(quarter,'-'), year)"
+    #elif (interval == 'W'): # not working
+    #    intervalQuery = f"extract(year from Market_Date)"
+
+    volatility = f"SELECT {namedIntervalQuery}, STDDEV(adj_close)/AVG(adj_close)*100 std FROM LIRAZ.stock_data WHERE stock_id = '{Stock1}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD') GROUP BY {intervalQuery}"
+
+    formattedVolatility = f"SELECT {formatting}, std FROM ({volatility})"
+
+    print(formattedVolatility)
+
+    cursor.execute(formattedVolatility)
+    r = cursor.fetchall()
+    return json.dumps(r, default=datetimeConverter)
+
+    
 if __name__ == '__main__':
     pool = start_pool()
 
