@@ -3,7 +3,6 @@ import sys
 import cx_Oracle
 from flask import Flask
 from flask_cors import CORS
-#from bson import json_util
 import datetime
 import json
 import keys
@@ -143,6 +142,40 @@ def get_seasonal(id, period, start, stop):
     r = cursor.fetchall()
     return json.dumps(r, default=json_util.default)
 
+
+@app.route('/volatility/<string:Stock1>/<string:interval>/<string:start>/<string:stop>')
+def get_volatility(Stock1, start, stop, interval='D'):
+    connection = pool.acquire()
+    cursor = connection.cursor()
+
+    intervalQuery = f""
+    namedIntervalQuery=f""
+    if (interval == 'Y'):
+        intervalQuery = f"extract(year from Market_Date)"
+        namedIntervalQuery = "extract(year from Market_Date) year"
+        formatting = "year"
+    elif (interval == 'M'):
+        intervalQuery = f"extract(year from Market_Date), extract(month from Market_Date)"
+        namedIntervalQuery = "extract(year from Market_Date) year, extract(month from Market_Date) month"
+        formatting = "CONCAT(CONCAT(month,'-'), year)"
+    elif (interval == 'Q'):
+        intervalQuery = f"extract(year from Market_Date), CEIL(extract(month from Market_Date)/3)"
+        namedIntervalQuery = "extract(year from Market_Date) year, CEIL(extract(month from Market_Date)/3) quarter"
+        formatting = "CONCAT(CONCAT(quarter,'-'), year)"
+    #elif (interval == 'W'): # not working
+    #    intervalQuery = f"extract(year from Market_Date)"
+
+    volatility = f"SELECT {namedIntervalQuery}, STDDEV(adj_close)/AVG(adj_close)*100 std FROM LIRAZ.stock_data WHERE stock_id = '{Stock1}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD') GROUP BY {intervalQuery}"
+
+    formattedVolatility = f"SELECT {formatting}, std FROM ({volatility})"
+
+    print(formattedVolatility)
+
+    cursor.execute(formattedVolatility)
+    r = cursor.fetchall()
+    return json.dumps(r, default=datetimeConverter)
+
+    
 if __name__ == '__main__':
     pool = start_pool()
 
