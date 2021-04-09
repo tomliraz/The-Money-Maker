@@ -155,14 +155,27 @@ def get_correlation(Stock1, Stock2, start, stop, interval='D'):
 
 #seasonal trends
 #company name, time period but yearly, time interval
-@app.route('/seasonal/<string:id>/<int:period>/<string:start>/<string:stop>')
-def get_seasonal(id, period, start, stop):
+@app.route('/seasonal/<string:id>/<int:beginYear>/<int:endYear>/<string:start>/<string:stop>')
+def get_seasonal(id, beginYear, endYear, start, stop):
     connection = pool.acquire()
     cursor = connection.cursor()
 
-    cursor.execute(f"select * FROM LIRAZ.Stock_Data WHERE Stock_ID = '{ id }'")
-    r = cursor.fetchall()
-    return json.dumps(r, default=json_util.default)
+    temp = []
+
+    while beginYear <= endYear:
+        seasonStart = str(beginYear) + start
+        seasonStop = str(beginYear) + stop
+        periodStart = str(beginYear) + "01-01"
+        periodStop = str(beginYear) + "12-31"
+        stockDataQuery = f"WITH Seasonal (STOCK_ID, S_Average) as (SELECT STOCK_ID, AVG(ADJ_CLOSE) FROM LIRAZ.Stock_Data WHERE MARKET_DATE <= to_date('{seasonStop}','YYYY/MM/DD') and MARKET_DATE >= to_date('{seasonStart}','YYYY/MM/DD') and STOCK_ID = '{id}' GROUP BY STOCK_ID), Period(STOCK_ID, P_Average) as (SELECT STOCK_ID, AVG(ADJ_CLOSE) FROM LIRAZ.Stock_Data WHERE MARKET_DATE <= to_date('{periodStop}','YYYY/MM/DD') and MARKET_DATE >= to_date('{periodStart}','YYYY/MM/DD') and STOCK_ID = '{id}' GROUP BY STOCK_ID) SELECT (S_Average - P_Average) / P_Average * 100 FROM Seasonal, Period"
+        cursor.execute(stockDataQuery)
+        r = cursor.fetchall()
+        #print(r[0])
+        temp.append([beginYear, r[0]])
+        beginYear += 1
+    
+    #print(temp[0][1])
+    return json.dumps(temp, default=datetimeConverter)
 
 
 @app.route('/volatility/<string:Stock1>/<string:interval>/<string:start>/<string:stop>')
