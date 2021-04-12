@@ -26,6 +26,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+
+    $('#sandbox-container .input-daterange').datepicker({
+        format: "yyyy-mm-dd",
+        minViewMode: 1,
+        maxViewMode: 2,
+        todayBtn: true
+    });
     
    
 }, false);
