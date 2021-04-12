@@ -127,12 +127,12 @@ def get_correlation(Stock1, Stock2, start, stop, interval='D'):
         intervalQuery = f"extract(year from Market_Date), extract(month from Market_Date)" 
         namedIntervalQuery = "extract(year from Market_Date) AS year, extract(month from Market_Date) AS month"
         nameOfInterval = f"year, month"
-        formatting = "CONCAT(CONCAT(month,'-'), year)"
+        formatting = "CONCAT(CONCAT(year, CONCAT('-', '01')), CONCAT('-', '01'))"
     elif (interval == 'Q'):
         intervalQuery = f"extract(year from Market_Date), CEIL(extract(month from Market_Date)/3)"
         namedIntervalQuery = "extract(year from Market_Date) AS year, CEIL(extract(month from Market_Date)/3) AS quarter"
         nameOfInterval = f"year, quarter"
-        formatting = "CONCAT(CONCAT(quarter,'-'), year)"
+        formatting = "CONCAT(CONCAT(year, CONCAT('-', LPAD(3*quarter-2, 2,'0'))), CONCAT('-', '01'))"
     #elif (interval == 'W'): # not working
     #    intervalQuery = f"extract(year from Market_Date), TO_CHAR(Market_Date, 'WW')"
     #    namedIntervalQuery = "extract(year from Market_Date) AS year, TO_CHAR(Market_Date, 'WW') AS week"
@@ -147,7 +147,7 @@ def get_correlation(Stock1, Stock2, start, stop, interval='D'):
 
     correlation = f"SELECT {nameOfInterval}, Cov / stddev_Product AS corr FROM ({ summedDemeanedPrices }) NATURAL JOIN ({ stdDevProduct })"
 
-    formattedCorrelation = f"SELECT {formatting}, corr FROM ({correlation})"
+    formattedCorrelation = f"SELECT {formatting}, corr FROM ({correlation}) ORDER BY {formatting}"
 
     cursor.execute(formattedCorrelation)
     r = cursor.fetchall()
