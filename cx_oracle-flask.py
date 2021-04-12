@@ -127,12 +127,12 @@ def get_correlation(Stock1, Stock2, start, stop, interval='D'):
         intervalQuery = f"extract(year from Market_Date), extract(month from Market_Date)" 
         namedIntervalQuery = "extract(year from Market_Date) AS year, extract(month from Market_Date) AS month"
         nameOfInterval = f"year, month"
-        formatting = "CONCAT(CONCAT(year, CONCAT('-', '01')), CONCAT('-', '01'))"
+        formatting = "CONCAT(CONCAT(month,'-'), year)"
     elif (interval == 'Q'):
         intervalQuery = f"extract(year from Market_Date), CEIL(extract(month from Market_Date)/3)"
         namedIntervalQuery = "extract(year from Market_Date) AS year, CEIL(extract(month from Market_Date)/3) AS quarter"
         nameOfInterval = f"year, quarter"
-        formatting = "CONCAT(CONCAT(year, CONCAT('-', LPAD(3*quarter-2, 2,'0'))), CONCAT('-', '01'))"
+        formatting = "CONCAT(CONCAT(quarter,'-'), year)"
     #elif (interval == 'W'): # not working
     #    intervalQuery = f"extract(year from Market_Date), TO_CHAR(Market_Date, 'WW')"
     #    namedIntervalQuery = "extract(year from Market_Date) AS year, TO_CHAR(Market_Date, 'WW') AS week"
@@ -147,7 +147,7 @@ def get_correlation(Stock1, Stock2, start, stop, interval='D'):
 
     correlation = f"SELECT {nameOfInterval}, Cov / stddev_Product AS corr FROM ({ summedDemeanedPrices }) NATURAL JOIN ({ stdDevProduct })"
 
-    formattedCorrelation = f"SELECT {formatting}, corr FROM ({correlation}) ORDER BY {formatting}"
+    formattedCorrelation = f"SELECT {formatting}, corr FROM ({correlation})"
 
     cursor.execute(formattedCorrelation)
     r = cursor.fetchall()
@@ -170,11 +170,10 @@ def get_seasonal(id, beginYear, endYear, start, stop):
         stockDataQuery = f"WITH Seasonal (STOCK_ID, S_Average) as (SELECT STOCK_ID, AVG(ADJ_CLOSE) FROM LIRAZ.Stock_Data WHERE MARKET_DATE <= to_date('{seasonStop}','YYYY/MM/DD') and MARKET_DATE >= to_date('{seasonStart}','YYYY/MM/DD') and STOCK_ID = '{id}' GROUP BY STOCK_ID), Period(STOCK_ID, P_Average) as (SELECT STOCK_ID, AVG(ADJ_CLOSE) FROM LIRAZ.Stock_Data WHERE MARKET_DATE <= to_date('{periodStop}','YYYY/MM/DD') and MARKET_DATE >= to_date('{periodStart}','YYYY/MM/DD') and STOCK_ID = '{id}' GROUP BY STOCK_ID) SELECT (S_Average - P_Average) / P_Average * 100 FROM Seasonal, Period"
         cursor.execute(stockDataQuery)
         r = cursor.fetchall()
-        #print(r[0])
-        temp.append([beginYear, r[0]])
+        adjYear = str(beginYear) + "-01-01"
+        temp.append([adjYear, r[0]])
         beginYear += 1
     
-    #print(temp[0][1])
     return json.dumps(temp, default=datetimeConverter)
 
 
