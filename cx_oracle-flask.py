@@ -48,9 +48,22 @@ def datetimeConverter(o):
     if isinstance(o, datetime.datetime):
         return o.__str__()
 
+
 @app.route('/')
 def index():
     return "Index"
+
+@app.route('/stocks')
+def list_stocks():
+    connection = pool.acquire()
+    cursor = connection.cursor()
+
+    getStocks = "SELECT company, stock_id FROM LIRAZ.stock_list ORDER BY WEIGHT DESC"
+
+    cursor.execute(getStocks)
+    r = cursor.fetchall()
+    return json.dumps(r, default=datetimeConverter)
+
 #company name, interval, and time period up three
 @app.route('/trend/<string:Stock1>/<string:interval>/<string:start>/<string:stop>')
 @app.route('/trend/<string:Stock1>/<string:Stock2>/<string:interval>/<string:start>/<string:stop>')
