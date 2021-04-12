@@ -90,16 +90,16 @@ AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"""
         stocks = f"{Stock1}"
     outer = ""
     if (interval == 'Y'):
-        outer = f"SELECT EXTRACT(year FROM Market_Date) as year, {select} FROM ({ inner }) GROUP BY EXTRACT(year FROM Market_Date) ORDER BY year"
+        outer = f"SELECT CONCAT(YEAR, '-01-01'), {stocks} FROM (SELECT EXTRACT(year FROM Market_Date) as year, {select} FROM ({ inner }) GROUP BY EXTRACT(year FROM Market_Date) ORDER BY year)"
     elif (interval == 'M'):
-        outer = f"SELECT CONCAT(CONCAT(month,'-'),year), {stocks} FROM (SELECT EXTRACT(month FROM Market_Date) as month, EXTRACT(year FROM Market_Date) as year, {select} FROM ({ inner }) GROUP BY EXTRACT(month FROM Market_Date), EXTRACT(year FROM Market_Date))"
+        outer = f"SELECT CONCAT(CONCAT(CONCAT(year,'-'), LPAD(month,2,'0')),'-01'), {stocks} FROM (SELECT EXTRACT(month FROM Market_Date) as month, EXTRACT(year FROM Market_Date) as year, {select} FROM ({ inner }) GROUP BY EXTRACT(month FROM Market_Date), EXTRACT(year FROM Market_Date))"
     elif (interval == 'Q'):
-        outer = f"SELECT CONCAT(CONCAT(Quarter,'-'), Year), {select} FROM ( SELECT {stocks}, CEIL(TO_NUMBER(TO_CHAR(Market_Date, 'MM'))/3) Quarter, TO_CHAR(Market_Date, 'YYYY') Year FROM ({inner}) ) GROUP BY CONCAT(CONCAT(Quarter,'-'), Year) ORDER BY CONCAT(CONCAT(Quarter,'-'), Year)"
-    elif (interval == 'W'):
-        outer = f"SELECT WYR, {select} FROM (SELECT {stocks}, CONCAT(CONCAT(TO_CHAR(Market_Date, 'WW'), '-'),  TO_CHAR(Market_Date, 'YYYY')) as WYR, Market_Date FROM ({inner})) GROUP BY WYR ORDER BY WYR"
+        outer = f"SELECT CONCAT(CONCAT(CONCAT(Year, '-'),LPAD(Quarter*3-2, 2, '0')), '-01'), {stocks} FROM (SELECT Quarter, Year, {select} FROM ( SELECT {stocks}, CEIL(TO_NUMBER(TO_CHAR(Market_Date, 'MM'))/3) Quarter, TO_CHAR(Market_Date, 'YYYY') Year FROM ({inner}) )  GROUP BY Quarter, Year ORDER BY Year, Quarter) "
+    # elif (interval == 'W'):
+    #     outer = f"SELECT WYR, {select} FROM (SELECT {stocks}, CONCAT(CONCAT(TO_CHAR(Market_Date, 'WW'), '-'),  TO_CHAR(Market_Date, 'YYYY')) as WYR, Market_Date FROM ({inner})) GROUP BY WYR ORDER BY WYR"
     else:
         outer = f"SELECT Market_Date, {select} FROM ({ inner }) GROUP BY Market_Date"
-    #print(outer)
+    print(outer)
     cursor.execute(outer)
     r = cursor.fetchall()
     #print(r)
