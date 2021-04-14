@@ -11,6 +11,8 @@ console.log(generateRow(1, "AAPL", "Apple Inc.", 0.011));
 
 document.addEventListener('DOMContentLoaded', function() {
 
+    $.fn.datepicker.defaults.format = "yyyy-mm-dd";
+
     $.ajax({
         url: base_url + "table/AAPL",
         type: "GET",

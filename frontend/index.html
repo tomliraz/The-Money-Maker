@@ -82,38 +82,40 @@
           <li class="nav-item">
             <a class="nav-link" onclick="loadView('MACD')" id="MACD">MACD</a>
           </li>
-          <li class="nav-item">
+          <!-- <li class="nav-item">
             <a class="nav-link" onclick="loadView('Google')" id="Google">Google Trend</a>
-          </li>
+          </li> -->
         </ul>
         <form>
-          <div class="input-daterange input-group" id="datepicker">
-              <input type="text" class="input-sm form-control" name="start" />
-              <span class="input-group-addon">to</span>
-              <input type="text" class="input-sm form-control" name="end" />
+          <div class="mt-2">
+            <div class="custom-control custom-radio custom-control-inline">
+                <input class="custom-control-input" name="timeframeRadioOptions" type="radio" id="dailyOption" value="Daily" checked>
+                <label class="custom-control-label" for="dailyOption">Daily</label>
+            </div>
+            <!-- <div class="custom-control custom-radio custom-control-inline">
+                <input class="custom-control-input" name="timeframeRadioOptions" type="radio" id="weeklyOption" value="Weekly">
+                <label class="custom-control-label" for="weeklyOption">Weekly</label>
+            </div> -->
+            <div class="custom-control custom-radio custom-control-inline">
+                <input class="custom-control-input" name="timeframeRadioOptions" type="radio" id="monthlyOption" value="Monthly">
+                <label class="custom-control-label" for="monthlyOption">Monthly</label>
+            </div>
+            <div class="custom-control custom-radio custom-control-inline">
+                <input class="custom-control-input" name="timeframeRadioOptions" type="radio" id="quarterlyOption" value="Quarterly">
+                <label class="custom-control-label" for="quarterlyOption">Quarterly</label>
+            </div>
+            <div class="custom-control custom-radio custom-control-inline">
+                <input class="custom-control-input" name="timeframeRadioOptions" type="radio" id="yearlyOption" value="Yearly">
+                <label class="custom-control-label" for="yearlyOption">Yearly</label>
+            </div>
           </div>
-  
-          <div class="form-check form-check-inline">
-              <input class="form-check-input" name="timeframeRadioOptions" type="radio" id="dailyOption" value="Daily">
-              <label class="form-check-label" for="dailyOption">Daily</label>
-          </div>
-          <div class="form-check form-check-inline">
-              <input class="form-check-input" name="timeframeRadioOptions" type="radio" id="weeklyOption" value="Weekly">
-              <label class="form-check-label" for="weeklyOption">Weekly</label>
-          </div>
-          <div class="form-check form-check-inline">
-              <input class="form-check-input" name="timeframeRadioOptions" type="radio" id="monthlyOption" value="Monthly">
-              <label class="form-check-label" for="monthlyOption">Monthly</label>
-          </div>
-          <div class="form-check form-check-inline">
-              <input class="form-check-input" name="timeframeRadioOptions" type="radio" id="quarterlyOption" value="Quarterly">
-              <label class="form-check-label" for="quarterlyOption">Quarterly</label>
-          </div>
-          <div class="form-check form-check-inline">
-              <input class="form-check-input" name="timeframeRadioOptions" type="radio" id="yearlyOption" value="Yearly">
-              <label class="form-check-label" for="yearlyOption">Yearly</label>
+          <div class="input-daterange input-group my-3" id="datepicker">
+            <input type="date" class="input-sm form-control" name="start" value="2017-06-01" min="2000-01-01" max="2019-12-31"/>
+            <span class="input-group-text">to</span>
+            <input type="date" class="input-sm form-control" name="end" value="2020-06-01" min="2000-01-01" max="2019-12-31"/>
           </div>
       </form>
+      <hr>
         <iframe id="main-frame" src="/charts/StockTrend.html"></iframe>
       </div> 
     </div>
