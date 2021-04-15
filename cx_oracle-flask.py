@@ -188,7 +188,7 @@ def get_volatility(Stock1, start, stop, interval='D'):
     if (interval == 'Y'):
         intervalQuery = f"extract(year from Market_Date)"
         namedIntervalQuery = "extract(year from Market_Date) year"
-        formatting = "CONCAT(CONCAT(year, CONCAT('-', '01')), CONCAT('-', '01'))"
+        formatting = "CONCAT(year, '-01-01')"
     elif (interval == 'M'):
         intervalQuery = f"extract(year from Market_Date), extract(month from Market_Date)"
         namedIntervalQuery = "extract(year from Market_Date) year, extract(month from Market_Date) month"
@@ -204,13 +204,31 @@ def get_volatility(Stock1, start, stop, interval='D'):
 
     formattedVolatility = f"SELECT {formatting}, std FROM ({volatility}) ORDER BY {formatting}"
 
-    print(formattedVolatility)
-
     cursor.execute(formattedVolatility)
     r = cursor.fetchall()
     return json.dumps(r, default=datetimeConverter)
 
+
+@app.route('/macd/<string:Stock1>/<string:slow>/<string:fast>/<string:start>/<string:stop>')
+def get_MACD(Stock1, slow, fast, start, stop):
+    connection = pool.acquire()
+    cursor = connection.cursor() #example: http://localhost:8081/macd/AAPL/12/11/2000-01-01/2000-02-01
+
+    k_slow = f"2/({slow}+1)"
     
+    k_fast = f"2/({fast}+1)"
+
+    stockDataQuery = f"SELECT ROW_NUMBER() OVER(ORDER BY market_date) k, market_date, adj_close FROM LIRAZ.stock_data WHERE stock_id = '{Stock1}' AND market_date >= TO_DATE('{start}', 'YYYY-MM-DD') AND market_date <= TO_DATE('{stop}', 'YYYY-MM-DD')"
+    
+    EMA_slow = f"WITH EMA (n,cdate,val) AS (SELECT * FROM ({stockDataQuery}) WHERE k = 1 UNION ALL SELECT n+1, market_date, adj_close*({k_slow}) + val*(1-{k_slow}) FROM EMA JOIN ({stockDataQuery}) d on EMA.n+1 = d.k) SELECT 'slow', cdate,val FROM EMA"
+    
+    EMA_fast = f"WITH EMA (n,cdate,val) AS (SELECT * FROM ({stockDataQuery}) WHERE k = 1 UNION ALL SELECT n+1, market_date, adj_close*({k_fast}) + val*(1-{k_fast}) FROM EMA JOIN ({stockDataQuery}) d on EMA.n+1 = d.k) SELECT 'fast', cdate,val FROM EMA"
+
+    cursor.execute(EMA_fast)
+    r = cursor.fetchall()
+    return json.dumps(r, default=datetimeConverter)
+
+
 if __name__ == '__main__':
     pool = start_pool()
 
