@@ -13,6 +13,7 @@
   <!-- Bootstrap core CSS -->
   <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
   <link href="style/main.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" integrity="sha512-mSYUmp1HYZDFaVKK//63EcZq4iFWFjxSL+Z3T/aCt4IO9Cejm03q3NKKYN6pFQzY0SBOr8h+eCIAZHPXcpZaNw==" crossorigin="anonymous" />
   <script type="text/javascript" src="script/main.js"></script>
 
 </head>
@@ -81,10 +82,40 @@
           <li class="nav-item">
             <a class="nav-link" onclick="loadView('MACD')" id="MACD">MACD</a>
           </li>
-          <li class="nav-item">
+          <!-- <li class="nav-item">
             <a class="nav-link" onclick="loadView('Google')" id="Google">Google Trend</a>
-          </li>
+          </li> -->
         </ul>
+        <form>
+          <div class="mt-2">
+            <div class="custom-control custom-radio custom-control-inline">
+                <input class="custom-control-input" name="timeframeRadioOptions" type="radio" id="dailyOption" value="Daily" checked>
+                <label class="custom-control-label" for="dailyOption">Daily</label>
+            </div>
+            <!-- <div class="custom-control custom-radio custom-control-inline">
+                <input class="custom-control-input" name="timeframeRadioOptions" type="radio" id="weeklyOption" value="Weekly">
+                <label class="custom-control-label" for="weeklyOption">Weekly</label>
+            </div> -->
+            <div class="custom-control custom-radio custom-control-inline">
+                <input class="custom-control-input" name="timeframeRadioOptions" type="radio" id="monthlyOption" value="Monthly">
+                <label class="custom-control-label" for="monthlyOption">Monthly</label>
+            </div>
+            <div class="custom-control custom-radio custom-control-inline">
+                <input class="custom-control-input" name="timeframeRadioOptions" type="radio" id="quarterlyOption" value="Quarterly">
+                <label class="custom-control-label" for="quarterlyOption">Quarterly</label>
+            </div>
+            <div class="custom-control custom-radio custom-control-inline">
+                <input class="custom-control-input" name="timeframeRadioOptions" type="radio" id="yearlyOption" value="Yearly">
+                <label class="custom-control-label" for="yearlyOption">Yearly</label>
+            </div>
+          </div>
+          <div class="input-daterange input-group my-3" id="datepicker">
+            <input type="date" class="input-sm form-control" name="start" value="2017-06-01" min="2000-01-01" max="2019-12-31"/>
+            <span class="input-group-text">to</span>
+            <input type="date" class="input-sm form-control" name="end" value="2020-06-01" min="2000-01-01" max="2019-12-31"/>
+          </div>
+      </form>
+      <hr>
         <iframe id="main-frame" src="/charts/StockTrend.html"></iframe>
       </div> 
     </div>
@@ -93,6 +124,7 @@
   <!-- Bootstrap core JavaScript -->
   <script src="vendor/jquery/jquery.min.js"></script>
   <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js" integrity="sha512-T/tUfKSV1bihCnd+MxKD0Hm1uBBroVYBOYSk1knyvQ9VyZJpc/ALb4P0r6ubwVPSGB2GvjeoMAJJImBG12TiaQ==" crossorigin="anonymous"></script>
 
 </body>
 

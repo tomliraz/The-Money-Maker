@@ -6,14 +6,12 @@
 
 tbody > tr:hover {
     background-color: lightblue;
-    cursor: crosshair;
 }
 
 .chart {
     width: 100%;
-    height: calc(100vh - 120px);
+    height: 500px;
     padding: 1em;
-    cursor: crosshair;
 }
 
 iframe {
@@ -24,6 +22,7 @@ iframe {
 
 #linechart {
     width: 100%;
+    height:500px;
 }
 
 tbody > tr > th {
