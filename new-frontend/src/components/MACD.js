@@ -1,7 +1,7 @@
 import React from 'react';
 import ShowGraph from './ShowGraph';
 
-const baseURL = "localhost:8081";
+const baseURL = "http://localhost:8081";
  
 function MACD(props) {
 
@@ -22,13 +22,21 @@ function MACD(props) {
       ];
 
     const [goodData, setData] = React.useState([]);
-
-    fetch(`${baseURL}/macd/${props.stock}/${props.fastPeriod}/${props.slowPeriod}/${props.start}/${props.end}`)
-    .then( (response) => {
-      console.log(response);
+    
+    console.log(`${baseURL}/macd/${props.stock}/${props.fastPeriod}/${props.slowPeriod}/${props.start}/${props.end}`);
+    fetch(`${baseURL}/macd/${props.stock}/${props.fastPeriod}/${props.slowPeriod}/${props.start}/${props.end}`,
+    {
+      method: "GET",
+      mode: "cors",
+      headers: {
+        "Access-Control-Alow-Origin": "*",
+        "Content-Type": "application/json"
+      }
+    })
+    .then((response) => response.json());
+    .then((response) => {
+        console.log(response);
     });
-
-    console.log(props);
 
     return (
         <div>
