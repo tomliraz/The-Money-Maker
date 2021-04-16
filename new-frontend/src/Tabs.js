@@ -93,7 +93,7 @@ export default function SimpleTabs() {
       </TabPanel>
       
       <TabPanel value={value} index={4}>
-        <MACD />
+        <MACD stock={"APPL"} start={'hi'} end={'hello'} fastPeriod={11} slowPeriod={21}/>
       </TabPanel>
     </div>
   );

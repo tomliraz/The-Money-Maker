@@ -1,5 +1,7 @@
 import React from 'react';
 import ShowGraph from './ShowGraph';
+
+const baseURL = "localhost:8081";
  
 function MACD(props) {
 
@@ -18,6 +20,15 @@ function MACD(props) {
         { primary: true, type: 'linear', position: 'bottom' },
         { type: 'linear', position: 'left' }
       ];
+
+    const [goodData, setData] = React.useState([]);
+
+    fetch(`${baseURL}/macd/${props.stock}/${props.fastPeriod}/${props.slowPeriod}/${props.start}/${props.end}`)
+    .then( (response) => {
+      console.log(response);
+    });
+
+    console.log(props);
 
     return (
         <div>
