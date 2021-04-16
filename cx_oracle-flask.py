@@ -146,11 +146,6 @@ def get_correlation(Stock1, Stock2, start, stop, interval='D'):
         namedIntervalQuery = "extract(year from Market_Date) AS year, CEIL(extract(month from Market_Date)/3) AS quarter"
         nameOfInterval = f"year, quarter"
         formatting = "CONCAT(CONCAT(year, CONCAT('-', LPAD(3*quarter-2, 2,'0'))), CONCAT('-', '01'))"
-    #elif (interval == 'W'): # not working
-    #    intervalQuery = f"extract(year from Market_Date), TO_CHAR(Market_Date, 'WW')"
-    #    namedIntervalQuery = "extract(year from Market_Date) AS year, TO_CHAR(Market_Date, 'WW') AS week"
-    #    nameOfInterval = f"year, week"
-    #elif (interval == 'D'):
         
     intervalAverages = f"SELECT Stock1, AVG(Price1) avg_price1, Stock2, AVG(Price2) avg_price2, { namedIntervalQuery } FROM ({ stockDataQuery }) GROUP BY Stock1, Stock2, { intervalQuery }"
 
@@ -168,14 +163,27 @@ def get_correlation(Stock1, Stock2, start, stop, interval='D'):
 
 #seasonal trends
 #company name, time period but yearly, time interval
-@app.route('/seasonal/<string:id>/<int:period>/<string:start>/<string:stop>')
-def get_seasonal(id, period, start, stop):
+@app.route('/seasonal/<string:id>/<int:beginYear>/<int:endYear>/<string:start>/<string:stop>')
+def get_seasonal(id, beginYear, endYear, start, stop):
     connection = pool.acquire()
     cursor = connection.cursor()
 
-    cursor.execute(f"select * FROM LIRAZ.Stock_Data WHERE Stock_ID = '{ id }'")
-    r = cursor.fetchall()
-    return json.dumps(r, default=json_util.default)
+    temp = []
+
+    while beginYear <= endYear:
+        seasonStart = str(beginYear) + start
+        seasonStop = str(beginYear) + stop
+        periodStart = str(beginYear) + "01-01"
+        periodStop = str(beginYear) + "12-31"
+        stockDataQuery = f"WITH Seasonal (STOCK_ID, S_Average) as (SELECT STOCK_ID, AVG(ADJ_CLOSE) FROM LIRAZ.Stock_Data WHERE MARKET_DATE <= to_date('{seasonStop}','YYYY/MM/DD') and MARKET_DATE >= to_date('{seasonStart}','YYYY/MM/DD') and STOCK_ID = '{id}' GROUP BY STOCK_ID), Period(STOCK_ID, P_Average) as (SELECT STOCK_ID, AVG(ADJ_CLOSE) FROM LIRAZ.Stock_Data WHERE MARKET_DATE <= to_date('{periodStop}','YYYY/MM/DD') and MARKET_DATE >= to_date('{periodStart}','YYYY/MM/DD') and STOCK_ID = '{id}' GROUP BY STOCK_ID) SELECT (S_Average - P_Average) / P_Average * 100 FROM Seasonal, Period"
+        cursor.execute(stockDataQuery)
+        r = cursor.fetchall()
+        #print(r[0])
+        temp.append([beginYear, r[0]])
+        beginYear += 1
+    
+    #print(temp[0][1])
+    return json.dumps(temp, default=datetimeConverter)
 
 
 @app.route('/volatility/<string:Stock1>/<string:interval>/<string:start>/<string:stop>')
@@ -220,9 +228,9 @@ def get_MACD(Stock1, slow, fast, start, stop):
 
     stockDataQuery = f"SELECT ROW_NUMBER() OVER(ORDER BY market_date) k, market_date, adj_close FROM LIRAZ.stock_data WHERE stock_id = '{Stock1}' AND market_date >= TO_DATE('{start}', 'YYYY-MM-DD') AND market_date <= TO_DATE('{stop}', 'YYYY-MM-DD')"
     
-    EMA_slow = f"WITH EMA (n,cdate,val) AS (SELECT * FROM ({stockDataQuery}) WHERE k = 1 UNION ALL SELECT n+1, market_date, adj_close*({k_slow}) + val*(1-{k_slow}) FROM EMA JOIN ({stockDataQuery}) d on EMA.n+1 = d.k) SELECT 'slow', cdate,val FROM EMA"
+    EMA_slow = f"WITH EMA (n,cdate,val) AS (SELECT * FROM ({stockDataQuery}) WHERE k = 1 UNION ALL SELECT n+1, market_date, adj_close*({k_slow}) + val*(1-{k_slow}) FROM EMA JOIN ({stockDataQuery}) d on EMA.n+1 = d.k) SELECT 'slow', cdate,val slowval FROM EMA"
     
-    EMA_fast = f"WITH EMA (n,cdate,val) AS (SELECT * FROM ({stockDataQuery}) WHERE k = 1 UNION ALL SELECT n+1, market_date, adj_close*({k_fast}) + val*(1-{k_fast}) FROM EMA JOIN ({stockDataQuery}) d on EMA.n+1 = d.k) SELECT 'fast', cdate,val FROM EMA"
+    EMA_fast = f"WITH EMA (n,cdate,val) AS (SELECT * FROM ({stockDataQuery}) WHERE k = 1 UNION ALL SELECT n+1, market_date, adj_close*({k_fast}) + val*(1-{k_fast}) FROM EMA JOIN ({stockDataQuery}) d on EMA.n+1 = d.k) SELECT 'fast', cdate,val fastval FROM EMA"
 
     cursor.execute(EMA_fast)
     r = cursor.fetchall()

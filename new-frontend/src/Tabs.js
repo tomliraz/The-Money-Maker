@@ -8,6 +8,10 @@ import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import HomePage from './components/Home';
 import StockTrend from './components/StockTrend';
+import Correlation from './components/Correlation'
+import Seasonal from './components/Seasonal'
+import Volatility from './components/Volatility'
+import MACD from './components/MACD'
 import ShowGraph from './components/ShowGraph';
 
 function TabPanel(props) {
@@ -67,18 +71,29 @@ export default function SimpleTabs() {
           <Tab label="Stock Trend" {...a11yProps(0)} />
           <Tab label="Correlation" {...a11yProps(1)} />
           <Tab label="Seasonal" {...a11yProps(2)} />
-          <Tab label="Volatility" {...a11yProps(2)} />
-          <Tab label="MACD" {...a11yProps(2)} />
+          <Tab label="Volatility" {...a11yProps(3)} />
+          <Tab label="MACD" {...a11yProps(4)} />
         </Tabs>
       </AppBar>
+      
       <TabPanel value={value} index={0}>
         <StockTrend />
       </TabPanel>
+      
       <TabPanel value={value} index={1}>
-        <StockTrend />
+        <Correlation />
       </TabPanel>
+      
       <TabPanel value={value} index={2}>
-        <StockTrend />
+        <Seasonal />
+      </TabPanel>
+      
+      <TabPanel value={value} index={3}>
+        <Volatility />
+      </TabPanel>
+      
+      <TabPanel value={value} index={4}>
+        <MACD />
       </TabPanel>
     </div>
   );
