@@ -33,7 +33,7 @@ function MACD(props) {
         "Content-Type": "application/json"
       }
     })
-    .then((response) => response.json());
+    .then((response) => response.json())
     .then((response) => {
         console.log(response);
     });
