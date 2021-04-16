@@ -48,9 +48,22 @@ def datetimeConverter(o):
     if isinstance(o, datetime.datetime):
         return o.__str__()
 
+
 @app.route('/')
 def index():
     return "Index"
+
+@app.route('/stocks')
+def list_stocks():
+    connection = pool.acquire()
+    cursor = connection.cursor()
+
+    getStocks = "SELECT company, stock_id FROM LIRAZ.stock_list ORDER BY WEIGHT DESC"
+
+    cursor.execute(getStocks)
+    r = cursor.fetchall()
+    return json.dumps(r, default=datetimeConverter)
+
 #company name, interval, and time period up three
 @app.route('/trend/<string:Stock1>/<string:interval>/<string:start>/<string:stop>')
 @app.route('/trend/<string:Stock1>/<string:Stock2>/<string:interval>/<string:start>/<string:stop>')
@@ -90,16 +103,16 @@ AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"""
         stocks = f"{Stock1}"
     outer = ""
     if (interval == 'Y'):
-        outer = f"SELECT EXTRACT(year FROM Market_Date) as year, {select} FROM ({ inner }) GROUP BY EXTRACT(year FROM Market_Date) ORDER BY year"
+        outer = f"SELECT CONCAT(YEAR, '-01-01'), {stocks} FROM (SELECT EXTRACT(year FROM Market_Date) as year, {select} FROM ({ inner }) GROUP BY EXTRACT(year FROM Market_Date) ORDER BY year)"
     elif (interval == 'M'):
-        outer = f"SELECT CONCAT(CONCAT(month,'-'),year), {stocks} FROM (SELECT EXTRACT(month FROM Market_Date) as month, EXTRACT(year FROM Market_Date) as year, {select} FROM ({ inner }) GROUP BY EXTRACT(month FROM Market_Date), EXTRACT(year FROM Market_Date))"
+        outer = f"SELECT CONCAT(CONCAT(CONCAT(year,'-'), LPAD(month,2,'0')),'-01'), {stocks} FROM (SELECT EXTRACT(month FROM Market_Date) as month, EXTRACT(year FROM Market_Date) as year, {select} FROM ({ inner }) GROUP BY EXTRACT(month FROM Market_Date), EXTRACT(year FROM Market_Date))"
     elif (interval == 'Q'):
-        outer = f"SELECT CONCAT(CONCAT(Quarter,'-'), Year), {select} FROM ( SELECT {stocks}, CEIL(TO_NUMBER(TO_CHAR(Market_Date, 'MM'))/3) Quarter, TO_CHAR(Market_Date, 'YYYY') Year FROM ({inner}) ) GROUP BY CONCAT(CONCAT(Quarter,'-'), Year) ORDER BY CONCAT(CONCAT(Quarter,'-'), Year)"
-    elif (interval == 'W'):
-        outer = f"SELECT WYR, {select} FROM (SELECT {stocks}, CONCAT(CONCAT(TO_CHAR(Market_Date, 'WW'), '-'),  TO_CHAR(Market_Date, 'YYYY')) as WYR, Market_Date FROM ({inner})) GROUP BY WYR ORDER BY WYR"
+        outer = f"SELECT CONCAT(CONCAT(CONCAT(Year, '-'),LPAD(Quarter*3-2, 2, '0')), '-01'), {stocks} FROM (SELECT Quarter, Year, {select} FROM ( SELECT {stocks}, CEIL(TO_NUMBER(TO_CHAR(Market_Date, 'MM'))/3) Quarter, TO_CHAR(Market_Date, 'YYYY') Year FROM ({inner}) )  GROUP BY Quarter, Year ORDER BY Year, Quarter) "
+    # elif (interval == 'W'):
+    #     outer = f"SELECT WYR, {select} FROM (SELECT {stocks}, CONCAT(CONCAT(TO_CHAR(Market_Date, 'WW'), '-'),  TO_CHAR(Market_Date, 'YYYY')) as WYR, Market_Date FROM ({inner})) GROUP BY WYR ORDER BY WYR"
     else:
         outer = f"SELECT Market_Date, {select} FROM ({ inner }) GROUP BY Market_Date"
-    #print(outer)
+    print(outer)
     cursor.execute(outer)
     r = cursor.fetchall()
     #print(r)
@@ -122,12 +135,12 @@ def get_correlation(Stock1, Stock2, start, stop, interval='D'):
         intervalQuery = f"extract(year from Market_Date)" #example: http://localhost:8081/correlation/AAPL/MSFT/M/2001-01-01/2003-01-01
         namedIntervalQuery = "extract(year from Market_Date) year"
         nameOfInterval = f"year"
-        formatting = "year"
+        formatting = "CONCAT(CONCAT(year, CONCAT('-', '01')), CONCAT('-', '01'))"
     elif (interval == 'M'):
         intervalQuery = f"extract(year from Market_Date), extract(month from Market_Date)" 
         namedIntervalQuery = "extract(year from Market_Date) AS year, extract(month from Market_Date) AS month"
         nameOfInterval = f"year, month"
-        formatting = "CONCAT(CONCAT(month,'-'), year)"
+        formatting = "CONCAT(CONCAT(year, CONCAT('-', LPAD(month, 2, '0'))), CONCAT('-', '01'))"
     elif (interval == 'Q'):
         intervalQuery = f"extract(year from Market_Date), CEIL(extract(month from Market_Date)/3)"
         namedIntervalQuery = "extract(year from Market_Date) AS year, CEIL(extract(month from Market_Date)/3) AS quarter"
@@ -187,29 +200,47 @@ def get_volatility(Stock1, start, stop, interval='D'):
     if (interval == 'Y'):
         intervalQuery = f"extract(year from Market_Date)"
         namedIntervalQuery = "extract(year from Market_Date) year"
-        formatting = "year"
+        formatting = "CONCAT(year, '-01-01')"
     elif (interval == 'M'):
         intervalQuery = f"extract(year from Market_Date), extract(month from Market_Date)"
         namedIntervalQuery = "extract(year from Market_Date) year, extract(month from Market_Date) month"
-        formatting = "CONCAT(CONCAT(month,'-'), year)"
+        formatting = "CONCAT(CONCAT(year, CONCAT('-', LPAD(month, 2, '0'))), CONCAT('-', '01'))"
     elif (interval == 'Q'):
         intervalQuery = f"extract(year from Market_Date), CEIL(extract(month from Market_Date)/3)"
         namedIntervalQuery = "extract(year from Market_Date) year, CEIL(extract(month from Market_Date)/3) quarter"
-        formatting = "CONCAT(CONCAT(quarter,'-'), year)"
+        formatting = "CONCAT(CONCAT(year, CONCAT('-', LPAD(3*quarter-2, 2,'0'))), CONCAT('-', '01'))"
     #elif (interval == 'W'): # not working
     #    intervalQuery = f"extract(year from Market_Date)"
 
     volatility = f"SELECT {namedIntervalQuery}, STDDEV(adj_close)/AVG(adj_close)*100 std FROM LIRAZ.stock_data WHERE stock_id = '{Stock1}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD') GROUP BY {intervalQuery}"
 
-    formattedVolatility = f"SELECT {formatting}, std FROM ({volatility})"
-
-    print(formattedVolatility)
+    formattedVolatility = f"SELECT {formatting}, std FROM ({volatility}) ORDER BY {formatting}"
 
     cursor.execute(formattedVolatility)
     r = cursor.fetchall()
     return json.dumps(r, default=datetimeConverter)
 
+
+@app.route('/macd/<string:Stock1>/<string:slow>/<string:fast>/<string:start>/<string:stop>')
+def get_MACD(Stock1, slow, fast, start, stop):
+    connection = pool.acquire()
+    cursor = connection.cursor() #example: http://localhost:8081/macd/AAPL/12/11/2000-01-01/2000-02-01
+
+    k_slow = f"2/({slow}+1)"
     
+    k_fast = f"2/({fast}+1)"
+
+    stockDataQuery = f"SELECT ROW_NUMBER() OVER(ORDER BY market_date) k, market_date, adj_close FROM LIRAZ.stock_data WHERE stock_id = '{Stock1}' AND market_date >= TO_DATE('{start}', 'YYYY-MM-DD') AND market_date <= TO_DATE('{stop}', 'YYYY-MM-DD')"
+    
+    EMA_slow = f"WITH EMA (n,cdate,val) AS (SELECT * FROM ({stockDataQuery}) WHERE k = 1 UNION ALL SELECT n+1, market_date, adj_close*({k_slow}) + val*(1-{k_slow}) FROM EMA JOIN ({stockDataQuery}) d on EMA.n+1 = d.k) SELECT 'slow', cdate,val FROM EMA"
+    
+    EMA_fast = f"WITH EMA (n,cdate,val) AS (SELECT * FROM ({stockDataQuery}) WHERE k = 1 UNION ALL SELECT n+1, market_date, adj_close*({k_fast}) + val*(1-{k_fast}) FROM EMA JOIN ({stockDataQuery}) d on EMA.n+1 = d.k) SELECT 'fast', cdate,val FROM EMA"
+
+    cursor.execute(EMA_fast)
+    r = cursor.fetchall()
+    return json.dumps(r, default=datetimeConverter)
+
+
 if __name__ == '__main__':
     pool = start_pool()
 

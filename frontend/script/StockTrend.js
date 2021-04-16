@@ -1,38 +1,67 @@
+var $ = window.parent.$;
+var jQuery = window.parent.jQuery;
+
+function compareDateColumn(a, b) {
+    if (a[0] === b[0]) {
+        return 0;
+    }
+    else {
+        return (a[0] < b[0]) ? -1 : 1;
+    }
+}
+
 function drawChart() {
 
-    var data = new google.visualization.DataTable();
-    data.addColumn('number', 'Day');
-    data.addColumn('number', 'AAPL');
-    data.addColumn('number', 'GME');
-    data.addColumn('number', 'AMC');
+    let start = $("input[name='start']").val();
+    $("input[name='start']").on("change", () => {
+        drawChart();
+    });
 
-    data.addRows([
-    [1,  37.8, 80.8, 41.8],
-    [2,  30.9, 69.5, 32.4],
-    [3,  25.4,   57, 25.7],
-    [4,  11.7, 18.8, 10.5],
-    [5,  11.9, 17.6, 10.4],
-    [6,   8.8, 13.6,  7.7],
-    [7,   7.6, 12.3,  9.6],
-    [8,  12.3, 29.2, 10.6],
-    [9,  16.9, 42.9, 14.8],
-    [10, 12.8, 30.9, 11.6],
-    [11,  5.3,  7.9,  4.7],
-    [12,  6.6,  8.4,  5.2],
-    [13,  4.8,  6.3,  3.6],
-    [14,  4.2,  6.2,  3.4]
-    ]);
+    let end = $("input[name='end']").val();
+    $("input[name='end']").on("change", () => {
+        drawChart();
+    });
 
-    var options = {
-        chart: {
-            title: 'Stock Trend',
-            subtitle: 'Apple Inc.'
-        },
-        width: "100%",
-        height: "100%"
-    };
+    var url = "http://localhost:8081/trend/AAPL/MSFT/TSLA/D/" + start + "/" + end;
 
-    var chart = new google.charts.Line(document.getElementById('linechart'));
+    $.ajax({
+        dataType: "json",
+        url: url,
+        success: (response) => {
+            for (var i = 0; i < response.length; i++)
+            { 
+                let d = response[i][0].split("-");
+                // response[i][0] = d[1] + "-" + d[0].padStart(2, '0') + "-01";
+                response[i][0] = new Date(response[i][0]);
+            }
+            response.sort(compareDateColumn);
+            console.log(response);
 
-    chart.draw(data, google.charts.Line.convertOptions(options));
+            var data = new google.visualization.DataTable();
+            data.addColumn('date', 'Month');
+            data.addColumn('number', 'AAPL');
+            data.addColumn('number', 'MSFT');
+            data.addColumn('number', 'TSLA');
+
+            data.addRows(response);
+
+            var options = {
+                chart: {
+                    title: 'Stock Trend',
+                    subtitle: 'Apple Inc.'
+                },
+                width: "100%",
+                height: "100%"
+            };
+        
+            var chart = new google.charts.Line(document.getElementById('linechart'));
+        
+            chart.draw(data, google.charts.Line.convertOptions(options));
+        }
+    });
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    drawChart();
+});
+
