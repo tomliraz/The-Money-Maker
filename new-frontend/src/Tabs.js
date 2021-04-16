@@ -14,6 +14,35 @@ import Volatility from './components/Volatility'
 import MACD from './components/MACD'
 import ShowGraph from './components/ShowGraph';
 
+const drawerWidth = 240;
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+        flexGrow: 1,
+        backgroundColor: theme.palette.background.paper,
+    },
+  menuButton: {
+    marginRight: theme.spacing(2),
+  },
+  title: {
+    flexGrow: 1,
+  },
+  toolbar: theme.mixins.toolbar,
+  drawerPaper: {
+    width: drawerWidth,
+  },
+  content: {
+    flexGrow: 1,
+    padding: theme.spacing(3),
+  },
+  appBar: {
+    [theme.breakpoints.up('sm')]: {
+      width: `calc(100% - ${drawerWidth}px)`,
+      marginLeft: drawerWidth,
+    },
+  },
+}));
+
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -47,13 +76,6 @@ function a11yProps(index) {
   };
 }
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-    backgroundColor: theme.palette.background.paper,
-  },
-}));
-
 export default function SimpleTabs() {
   const classes = useStyles();
   const [value, setValue] = React.useState(0);
@@ -66,7 +88,7 @@ export default function SimpleTabs() {
 
   return (
     <div className={classes.root}>
-      <AppBar position="static">
+      <AppBar position="static" className={classes.appBar}>
         <Tabs value={value} onChange={handleChange} aria-label="simple tabs example">
           <Tab label="Stock Trend" {...a11yProps(0)} />
           <Tab label="Correlation" {...a11yProps(1)} />
