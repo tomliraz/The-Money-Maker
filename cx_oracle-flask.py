@@ -217,10 +217,10 @@ def get_volatility(Stock1, start, stop, interval='D'):
     return json.dumps(r, default=datetimeConverter)
 
 
-@app.route('/macd/<string:Stock1>/<string:slow>/<string:fast>/<string:start>/<string:stop>')
+@app.route('/macd/<string:Stock1>/<string:fast>/<string:slow>/<string:start>/<string:stop>')
 def get_MACD(Stock1, slow, fast, start, stop):
     connection = pool.acquire()
-    cursor = connection.cursor() #example: http://localhost:8081/macd/AAPL/12/11/2000-01-01/2000-02-01
+    cursor = connection.cursor() #example: http://localhost:8081/macd/AAPL/10/15/2000-01-01/2000-02-01
 
     k_slow = f"2/({slow}+1)"
     
