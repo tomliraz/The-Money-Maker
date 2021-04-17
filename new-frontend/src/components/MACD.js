@@ -3,27 +3,12 @@ import ShowGraph from './ShowGraph';
 
 const baseURL = "http://localhost:8081";
  
-function MACD(props) {
+class MACD extends React.Component {
 
-    const data = [
-        {
-          label: 'Series 1',
-          data: [[0, -2], [1, 2], [2, 4], [3, 2], [4, 7]]
-        },
-        {
-          label: 'Series 2',
-          data: [[0, 3], [1, 1], [2, 5], [3, 6], [4, 4]]
-        }
-      ];
-    
-      const axis = [
-        { primary: true, type: 'linear', position: 'bottom' },
-        { type: 'linear', position: 'left' }
-      ];
-
-    const [goodData, setData] = React.useState([]);
-    
-    console.log(`${baseURL}/macd/${props.stock}/${props.fastPeriod}/${props.slowPeriod}/${props.start}/${props.end}`);
+  constructor (props) {
+    super(props);
+    this.data = [];
+    // console.log(`${baseURL}/macd/${props.stock}/${props.fastPeriod}/${props.slowPeriod}/${props.start}/${props.end}`);
     fetch(`${baseURL}/macd/${props.stock}/${props.fastPeriod}/${props.slowPeriod}/${props.start}/${props.end}`,
     {
       method: "GET",
@@ -35,13 +20,29 @@ function MACD(props) {
     })
     .then((response) => response.json())
     .then((response) => {
-        console.log(response);
+      this.data = response;
+      this.setState({data: this.data});
     });
+  };
+
+  render (){
+    const options = {
+      title: 'Population of Largest U.S. Cities',
+      chartArea: { width: '20%' },
+      hAxis: {
+        title: 'Date',
+        minValue: 0,
+      },
+      vAxis: {
+        title: 'Price',
+      },
+    };
 
     return (
-        <div>
-            <ShowGraph data={data} axis={axis}/>
-        </div>
+      <div>
+        <ShowGraph data={this.data} options={options}/>
+      </div>
     );
+  }
 }
 export default MACD;
