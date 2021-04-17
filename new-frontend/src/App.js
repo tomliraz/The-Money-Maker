@@ -48,7 +48,7 @@ export default function App() {
         <div className={classes.addSpacing}>
           <Switch>
             <Route path="/">
-              <HomePage />
+              <span />
             </Route>
           </Switch>
         </div>
