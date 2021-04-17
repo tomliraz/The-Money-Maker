@@ -29,7 +29,7 @@ class MACD extends React.Component {
   render (){
     const options = {
       title: 'MACD - ' + this.stockSymbol,
-      chartArea: { width: '20%' },
+      chartArea: { width: '80%' },
       hAxis: {
         title: 'Date',
       },
