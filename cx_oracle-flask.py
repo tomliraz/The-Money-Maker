@@ -205,8 +205,6 @@ def get_volatility(Stock1, start, stop, interval='D'):
         intervalQuery = f"extract(year from Market_Date), CEIL(extract(month from Market_Date)/3)"
         namedIntervalQuery = "extract(year from Market_Date) year, CEIL(extract(month from Market_Date)/3) quarter"
         formatting = "CONCAT(CONCAT(year, CONCAT('-', LPAD(3*quarter-2, 2,'0'))), CONCAT('-', '01'))"
-    #elif (interval == 'W'): # not working
-    #    intervalQuery = f"extract(year from Market_Date)"
 
     volatility = f"SELECT {namedIntervalQuery}, STDDEV(adj_close)/AVG(adj_close)*100 std FROM LIRAZ.stock_data WHERE stock_id = '{Stock1}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD') GROUP BY {intervalQuery}"
 
@@ -228,11 +226,13 @@ def get_MACD(Stock1, slow, fast, start, stop):
 
     stockDataQuery = f"SELECT ROW_NUMBER() OVER(ORDER BY market_date) k, market_date, adj_close FROM LIRAZ.stock_data WHERE stock_id = '{Stock1}' AND market_date >= TO_DATE('{start}', 'YYYY-MM-DD') AND market_date <= TO_DATE('{stop}', 'YYYY-MM-DD')"
     
-    EMA_slow = f"WITH EMA (n,cdate,val) AS (SELECT * FROM ({stockDataQuery}) WHERE k = 1 UNION ALL SELECT n+1, market_date, adj_close*({k_slow}) + val*(1-{k_slow}) FROM EMA JOIN ({stockDataQuery}) d on EMA.n+1 = d.k) SELECT 'slow', cdate,val slowval FROM EMA"
+    EMA_slow = f"WITH EMA (n,cdate,val) AS (SELECT * FROM ({stockDataQuery}) WHERE k = 1 UNION ALL SELECT n+1, market_date, adj_close*({k_slow}) + val*(1-{k_slow}) FROM EMA JOIN ({stockDataQuery}) d on EMA.n+1 = d.k) SELECT cdate,val slowval FROM EMA"
     
-    EMA_fast = f"WITH EMA (n,cdate,val) AS (SELECT * FROM ({stockDataQuery}) WHERE k = 1 UNION ALL SELECT n+1, market_date, adj_close*({k_fast}) + val*(1-{k_fast}) FROM EMA JOIN ({stockDataQuery}) d on EMA.n+1 = d.k) SELECT 'fast', cdate,val fastval FROM EMA"
+    EMA_fast = f"WITH EMA (n,cdate,val) AS (SELECT * FROM ({stockDataQuery}) WHERE k = 1 UNION ALL SELECT n+1, market_date, adj_close*({k_fast}) + val*(1-{k_fast}) FROM EMA JOIN ({stockDataQuery}) d on EMA.n+1 = d.k) SELECT cdate,val fastval FROM EMA"
 
-    cursor.execute(EMA_fast)
+    combined_MACD = f"SELECT fast.cdate, fastval, slowval FROM ({EMA_fast}) fast JOIN ({EMA_slow}) slow on fast.cdate = slow.cdate"
+
+    cursor.execute(combined_MACD)
     r = cursor.fetchall()
     return json.dumps(r, default=datetimeConverter)
 
