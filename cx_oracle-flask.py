@@ -234,6 +234,7 @@ def get_MACD(Stock1, slow, fast, start, stop):
 
     cursor.execute(combined_MACD)
     r = cursor.fetchall()
+    r.insert(0, ["Date", "Fast MA", "Slow MA"])
     return json.dumps(r, default=datetimeConverter)
 
 
