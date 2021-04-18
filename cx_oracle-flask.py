@@ -74,6 +74,7 @@ def get_trend(Stock1, start, stop, Stock2='', Stock3='', interval='D'):
     inner = ""
     select = ""
     stocks = ""
+    colNames = ""
     if (Stock3 != ''):
         inner = f"""(SELECT ADJ_Close as {Stock1}, Market_Date FROM LIRAZ.Stock_Data 
 WHERE Stock_ID = '{Stock1}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') 
@@ -86,6 +87,7 @@ WHERE Stock_ID = '{Stock3}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD')
 AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"""
         select = f"AVG({Stock1}) as {Stock1}, AVG({Stock2}) as {Stock2}, AVG({Stock3}) as {Stock3}"
         stocks = f"{Stock1}, {Stock2}, {Stock3}"
+        colNames = ["Date", Stock1, Stock2, Stock3]
     elif (Stock2 != ''):
         inner = f"""(SELECT ADJ_Close as {Stock1}, Market_Date FROM LIRAZ.Stock_Data 
 WHERE Stock_ID = '{Stock1}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') 
@@ -95,12 +97,14 @@ WHERE Stock_ID = '{Stock2}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD')
 AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"""
         select = f'AVG({Stock1}) as {Stock1}, AVG({Stock2}) as {Stock2}'
         stocks = f"{Stock1}, {Stock2}"
+        colNames = ["Date", Stock1, Stock2]
     else: 
         inner = f"""(SELECT ADJ_Close as {Stock1}, Market_Date FROM LIRAZ.Stock_Data 
 WHERE Stock_ID = '{Stock1}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') 
 AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"""
         select = f'AVG({Stock1}) as {Stock1}'
         stocks = f"{Stock1}"
+        colNames = ["Date", Stock1]
     outer = ""
     if (interval == 'Y'):
         outer = f"SELECT CONCAT(YEAR, '-01-01'), {stocks} FROM (SELECT EXTRACT(year FROM Market_Date) as year, {select} FROM ({ inner }) GROUP BY EXTRACT(year FROM Market_Date) ORDER BY year)"
@@ -115,7 +119,7 @@ AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"""
     #print(outer)
     cursor.execute(outer)
     r = cursor.fetchall()
-    r.insert(0, ["Date", Stock1, Stock2, Stock3])
+    r.insert(0, colNames)
     #print(r)
     return json.dumps(r, default=datetimeConverter)
 
