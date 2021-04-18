@@ -8,9 +8,7 @@ import {
 } from "react-router-dom";
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import HomePage from './components/Home';
 import HomeNav from './NavBar';
-import StockListDrawer from './StockListDrawer';
 import TabBar from './Tabs';
 const drawerWidth = 240;
 

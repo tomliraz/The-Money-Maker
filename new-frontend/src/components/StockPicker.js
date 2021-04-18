@@ -34,8 +34,8 @@ class StockPicker extends React.Component{
               options={this.stocks}
               onSelect={this.props.onChange}
               getOptionLabel={(option) => option[1]}
-              style={{ width: 400, marginTop: "1em"}}
-              renderInput={(params) => <TextField {...params} label="Stock" variant="outlined" />}
+              style={{ width: 250, marginTop: "1em"}}
+              renderInput={(params) => <TextField {...params} label={this.props.title} variant="outlined" />}
             />
           );
     }

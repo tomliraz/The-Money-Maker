@@ -102,6 +102,8 @@ export default function SimpleTabs() {
   const [startDate, setStartDate] = React.useState(new Date('2018-01-01')); 
   const [endDate, setEndDate] = React.useState(new Date('2019-01-01'));
   const [selectedStock, setSelectedStock] = React.useState("AAPL");
+  const [selectedStock2, setSelectedStock2] = React.useState("MSFT");
+  const [selectedStock3, setSelectedStock3] = React.useState("TSLA");
   const [interval, setInterval] = React.useState('M');
 
 
@@ -123,6 +125,14 @@ export default function SimpleTabs() {
     setSelectedStock(symbol.target.value); 
   };
 
+  const handleStockPickerChange2 = (symbol) => {
+    setSelectedStock2(symbol.target.value); 
+  };
+
+  const handleStockPickerChange3 = (symbol) => {
+    setSelectedStock3(symbol.target.value); 
+  };
+
   const handleIntervalChange = (event) => {
     setInterval(event.target.value);
   };
@@ -138,14 +148,12 @@ export default function SimpleTabs() {
           <Tab label="MACD" {...a11yProps(4)} />
         </Tabs>
       </AppBar>
-      
-      <TabPanel value={value} index={0}>
-        <StockTrend />
-      </TabPanel>
 
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
         <Grid container justify="space-around">
-          <StockPicker onChange={handleStockPickerChange}/>
+          <StockPicker onChange={handleStockPickerChange} title="Stock"/>
+          {(value == 0 || value == 1) && <StockPicker onChange={handleStockPickerChange2} title="Stock 2"/>}
+          {(value == 0) && <StockPicker onChange={handleStockPickerChange3} title="Stock 3"/>}
 
           <FormControl variant="outlined" className={classes.formControl}>
             <InputLabel id="demo-simple-select-outlined-label">Interval</InputLabel>
@@ -190,9 +198,13 @@ export default function SimpleTabs() {
           />
         </Grid>
       </MuiPickersUtilsProvider>
+
+      <TabPanel value={value} index={0}>
+        <StockTrend />
+      </TabPanel>
       
       <TabPanel value={value} index={1}>
-        <Correlation stock1={"AAPL"} stock2={"MSFT"} interval={"Y"} start={'2000-01-01'} end={'2008-01-01'}/>
+        <Correlation stock1={selectedStock} stock2={selectedStock2} interval={interval} start={startDate.toISOString().substr(0,10)} end={endDate.toISOString().substr(0,10)}/>
       </TabPanel>
       
       <TabPanel value={value} index={2}>
