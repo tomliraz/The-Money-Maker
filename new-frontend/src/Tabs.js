@@ -7,6 +7,12 @@ import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import HomePage from './components/Home';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import FormHelperText from '@material-ui/core/FormHelperText';
+import FormControl from '@material-ui/core/FormControl';
+import Button from '@material-ui/core/Button';
+import Select from '@material-ui/core/Select';
 import Grid from '@material-ui/core/Grid';
 import StockTrend from './components/StockTrend';
 import Correlation from './components/Correlation'
@@ -48,6 +54,9 @@ const useStyles = makeStyles((theme) => ({
       marginLeft: drawerWidth,
     },
   },
+  formControl: {
+    marginTop: "1em"
+  }
 }));
 
 function isValidDate(d) {
@@ -93,6 +102,8 @@ export default function SimpleTabs() {
   const [startDate, setStartDate] = React.useState(new Date('2018-01-01')); 
   const [endDate, setEndDate] = React.useState(new Date('2019-01-01'));
   const [selectedStock, setSelectedStock] = React.useState("AAPL");
+  const [interval, setInterval] = React.useState('M');
+
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -110,6 +121,10 @@ export default function SimpleTabs() {
 
   const handleStockPickerChange = (symbol) => {
     setSelectedStock(symbol.target.value); 
+  };
+
+  const handleIntervalChange = (event) => {
+    setInterval(event.target.value);
   };
 
   return (
@@ -131,6 +146,22 @@ export default function SimpleTabs() {
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
         <Grid container justify="space-around">
           <StockPicker onChange={handleStockPickerChange}/>
+
+          <FormControl variant="outlined" className={classes.formControl}>
+            <InputLabel id="demo-simple-select-outlined-label">Interval</InputLabel>
+            <Select
+              labelId="interval-select-outlined-label"
+              id="interval-select-outlined"
+              value={interval}
+              onChange={handleIntervalChange}
+              label="Interval"
+            >
+              <MenuItem value={'M'}>Monthly</MenuItem>
+              <MenuItem value={'Q'}>Quarterly</MenuItem>
+              <MenuItem value={'Y'}>Yearly</MenuItem>
+            </Select>
+          </FormControl>
+
           <KeyboardDatePicker
             disableToolbar
             variant="inline"

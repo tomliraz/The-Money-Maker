@@ -2,7 +2,6 @@ import React from 'react';
 import ShowGraph from './ShowGraph';
 
 const baseURL = "http://localhost:8081";
- 
 class MACD extends React.Component {
 
   constructor (props) {
@@ -28,6 +27,27 @@ class MACD extends React.Component {
       this.setState({data: this.data});
     });
   };
+
+  componentWillReceiveProps(nextProps) {
+    fetch(`${baseURL}/macd/${nextProps.stock}/${nextProps.fastPeriod}/${nextProps.slowPeriod}/${nextProps.start}/${nextProps.end}`,
+    {
+      method: "GET",
+      mode: "cors",
+      headers: {
+        "Access-Control-Alow-Origin": "*",
+        "Content-Type": "application/json"
+      }
+    })
+    .then((response) => response.json())
+    .then((response) => {
+      this.data = response.map((arr) => {
+        arr[0] = arr[0].substr(0,10);
+        return arr;
+      });
+      this.stockSymbol = nextProps.stock;
+      this.setState({data: this.nextProps, stockSymbol: this.stockSymbol});
+    });
+  }
 
   render (){
     const options = {
