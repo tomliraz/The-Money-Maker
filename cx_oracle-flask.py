@@ -159,6 +159,7 @@ def get_correlation(Stock1, Stock2, start, stop, interval='D'):
 
     cursor.execute(formattedCorrelation)
     r = cursor.fetchall()
+    r.insert(0, ["Date", "Correlation Coefficient"])
     return json.dumps(r, default=datetimeConverter)
 
 #seasonal trends
@@ -187,7 +188,9 @@ def get_seasonal(id, beginYear, endYear, start, stop):
 
 
 @app.route('/volatility/<string:Stock1>/<string:interval>/<string:start>/<string:stop>')
-def get_volatility(Stock1, start, stop, interval='D'):
+@app.route('/volatility/<string:Stock1>/<string:Stock2>/<string:interval>/<string:start>/<string:stop>')
+@app.route('/volatility/<string:Stock1>/<string:Stock2>/<string:Stock3>/<string:interval>/<string:start>/<string:stop>')
+def get_volatility(Stock1, interval, start, stop, Stock2='', Stock3=''):
     connection = pool.acquire()
     cursor = connection.cursor()
 
@@ -206,12 +209,28 @@ def get_volatility(Stock1, start, stop, interval='D'):
         namedIntervalQuery = "extract(year from Market_Date) year, CEIL(extract(month from Market_Date)/3) quarter"
         formatting = "CONCAT(CONCAT(year, CONCAT('-', LPAD(3*quarter-2, 2,'0'))), CONCAT('-', '01'))"
 
-    volatility = f"SELECT {namedIntervalQuery}, STDDEV(adj_close)/AVG(adj_close)*100 std FROM LIRAZ.stock_data WHERE stock_id = '{Stock1}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD') GROUP BY {intervalQuery}"
+    volatility = f""
+    formattedVolatility = f""
+    initial=[]
 
-    formattedVolatility = f"SELECT {formatting}, std FROM ({volatility}) ORDER BY {formatting}"
+    if(Stock2==''):
+        volatility = f"SELECT {namedIntervalQuery}, STDDEV(adj_close)/AVG(adj_close)*100 std FROM LIRAZ.stock_data WHERE stock_id = '{Stock1}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD') GROUP BY {intervalQuery}"
+        formattedVolatility = f"SELECT {formatting}, std FROM ({volatility}) ORDER BY {formatting}"
+        initial=["Date", "Volatility"]
+    elif(Stock3==''):
+        stockDataQuery = f"SELECT one.market_date , one.adj_close close_one, two.adj_close close_two FROM LIRAZ.stock_data one JOIN LIRAZ.stock_data two ON one.market_date=two.market_date WHERE one.stock_id = '{Stock1}' AND two.stock_id = '{Stock2}' AND one.Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND one.Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD')"
+        volatility = f"SELECT {namedIntervalQuery}, STDDEV(close_one)/AVG(close_one)*100 std1, STDDEV(close_two)/AVG(close_two)*100 std2 FROM ({stockDataQuery}) GROUP BY {intervalQuery}"
+        formattedVolatility = f"SELECT {formatting}, std1, std2 FROM ({volatility}) ORDER BY {formatting}"
+        initial=["Date", "Volatility1", "Volatility2"]
+    else:
+        stockDataQuery = f"SELECT one.market_date , one.adj_close close_one, two.adj_close close_two, three.adj_close close_three FROM (LIRAZ.stock_data one JOIN LIRAZ.stock_data two ON one.market_date=two.market_date) JOIN LIRAZ.stock_data three ON one.market_date=three.market_date WHERE one.stock_id = '{Stock1}' AND two.stock_id = '{Stock2}' AND three.stock_id = '{Stock3}' AND one.Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND one.Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD')"
+        volatility = f"SELECT {namedIntervalQuery}, STDDEV(close_one)/AVG(close_one)*100 std1, STDDEV(close_two)/AVG(close_two)*100 std2, STDDEV(close_three)/AVG(close_three)*100 std3 FROM ({stockDataQuery}) GROUP BY {intervalQuery}"
+        formattedVolatility = f"SELECT {formatting}, std1, std2, std3 FROM ({volatility}) ORDER BY {formatting}"
+        initial=["Date", "Volatility1", "Volatility2", "Volatility3"]
 
     cursor.execute(formattedVolatility)
     r = cursor.fetchall()
+    r.insert(0,initial)
     return json.dumps(r, default=datetimeConverter)
 
 
