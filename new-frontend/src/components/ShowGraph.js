@@ -8,7 +8,7 @@ const drawerWidth = 240;
 const useStyles = makeStyles((theme) => ({
   addSpacing: {
     [theme.breakpoints.up('sm')]: {
-      width: `calc(100% - ${drawerWidth}px)`,
+      // width: `calc(100% - ${drawerWidth}px)`,
       marginLeft: drawerWidth,
     },
   },
@@ -22,7 +22,7 @@ export default function ShowGraph(props) {
   const options = props.options;
   
   return (
-      <Grid container className={classes.addSpacing}>
+      <Grid container>
           <Grid item xs={12}>
           <Chart
             width={"100%"}

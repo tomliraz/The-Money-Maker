@@ -11,7 +11,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import MailIcon from '@material-ui/icons/Mail';
 import Typography from '@material-ui/core/Typography';
-import { makeStyles, useTheme } from '@material-ui/core/styles';
+import { withStyles, useTheme, makeStyles, withTheme } from '@material-ui/core/styles';
 
 const drawerWidth = 240;
 
@@ -45,70 +45,79 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function StockListDrawer(props) {
-  const { window } = props;
-  const classes = useStyles();
-  const theme = useTheme();
-  const [mobileOpen, setMobileOpen] = React.useState(false);
+class StockListDrawer extends React.Component  {
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
+  constructor (props) {
+    super(props);
+    this.mobileOpen = false;
+    this.stockList = [];
+  }
 
-  const drawer = (
-    <div>
-      <div className={classes.toolbar} />
-      <Typography variant="h4">Stocks</Typography>
-      <Divider />
-      <List>
-        {['AAPL', 'GME', 'AMC', 'TSLA'].map((text, index) => (
-          <ListItem button key={text}>
-            <ListItemText primary={text} />
-          </ListItem>
-        ))}
-      </List>
-      <Divider />
-    </div>
-  );
+  render () {
+    const { window } = this.props;
+    const { classes } = this.props;
+  
+    const handleDrawerToggle = () => {
+      this.mobileOpen = !this.mobileOpen;
+      this.setState({mobileOpen: this.mobileOpen});
+    };
+  
+    const drawer = (
+      <div>
+        <div className={classes.toolbar} />
+        <Typography variant="h4">Stocks</Typography>
+        <Divider />
+        <List>
+          {this.stockList.map((text, index) => (
+            <ListItem button key={text}>
+              <ListItemText primary={text} />
+            </ListItem>
+          ))}
+        </List>
+        <Divider />
+      </div>
+    );
+  
+    const container = window !== undefined ? () => window().document.body : undefined;
+  
+    return (
+      <div className={classes.root}>
+        <CssBaseline />
+        <nav className={classes.drawer} aria-label="mailbox folders">
+          {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
+          <Hidden smUp implementation="css">
+            <Drawer
+              container={container}
+              variant="temporary"
+              anchor={'right'}
+              open={this.mobileOpen}
+              onClose={handleDrawerToggle}
+              classes={{
+                paper: classes.drawerPaper,
+              }}
+              ModalProps={{
+                keepMounted: true, // Better open performance on mobile.
+              }}
+            >
+              {drawer}
+            </Drawer>
+          </Hidden>
+          <Hidden xsDown implementation="css">
+            <Drawer
+              classes={{
+                paper: classes.drawerPaper,
+              }}
+              variant="permanent"
+              open
+            >
+              {drawer}
+            </Drawer>
+          </Hidden>
+        </nav>
+      </div>
+    );
+  }
 
-  const container = window !== undefined ? () => window().document.body : undefined;
-
-  return (
-    <div className={classes.root}>
-      <CssBaseline />
-      <nav className={classes.drawer} aria-label="mailbox folders">
-        {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
-        <Hidden smUp implementation="css">
-          <Drawer
-            container={container}
-            variant="temporary"
-            anchor={theme.direction === 'rtl' ? 'right' : 'left'}
-            open={mobileOpen}
-            onClose={handleDrawerToggle}
-            classes={{
-              paper: classes.drawerPaper,
-            }}
-            ModalProps={{
-              keepMounted: true, // Better open performance on mobile.
-            }}
-          >
-            {drawer}
-          </Drawer>
-        </Hidden>
-        <Hidden xsDown implementation="css">
-          <Drawer
-            classes={{
-              paper: classes.drawerPaper,
-            }}
-            variant="permanent"
-            open
-          >
-            {drawer}
-          </Drawer>
-        </Hidden>
-      </nav>
-    </div>
-  );
 }
 
-export default StockListDrawer;
+export default withStyles(useStyles)(withTheme(StockListDrawer));

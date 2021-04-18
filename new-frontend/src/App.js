@@ -42,10 +42,10 @@ export default function App() {
 
         <HomeNav className={classes.appBar} />
         <TabBar className={classes.appBar} />
-        <StockListDrawer />
+        {/* <StockListDrawer /> */}
         {/* A <Switch> looks through its children <Route>s and
             renders the first one that matches the current URL. */}
-        <div className={classes.addSpacing}>
+        <div>
           <Switch>
             <Route path="/">
               <span />
