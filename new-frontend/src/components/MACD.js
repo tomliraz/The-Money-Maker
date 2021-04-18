@@ -21,8 +21,10 @@ class MACD extends React.Component {
     })
     .then((response) => response.json())
     .then((response) => {
-      console.log(response);
-      this.data = response;
+      this.data = response.map((arr) => {
+        arr[0] = arr[0].substr(0,10);
+        return arr;
+      });
       this.setState({data: this.data});
     });
   };
@@ -33,6 +35,7 @@ class MACD extends React.Component {
       chartArea: { width: '80%' },
       hAxis: {
         title: 'Date',
+
       },
       vAxis: {
         title: 'Price',
