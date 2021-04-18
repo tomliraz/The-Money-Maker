@@ -86,6 +86,7 @@ WHERE Stock_ID = '{Stock3}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD')
 AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"""
         select = f"AVG({Stock1}) as {Stock1}, AVG({Stock2}) as {Stock2}, AVG({Stock3}) as {Stock3}"
         stocks = f"{Stock1}, {Stock2}, {Stock3}"
+        stocks_normalize = f"{Stock1}/(MAX({Stock1}) over())*100, {Stock2}/(MAX({Stock2}) over())*100, {Stock3}/(MAX({Stock3}) over())*100"
     elif (Stock2 != ''):
         inner = f"""(SELECT ADJ_Close as {Stock1}, Market_Date FROM LIRAZ.Stock_Data 
 WHERE Stock_ID = '{Stock1}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') 
@@ -95,24 +96,26 @@ WHERE Stock_ID = '{Stock2}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD')
 AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"""
         select = f'AVG({Stock1}) as {Stock1}, AVG({Stock2}) as {Stock2}'
         stocks = f"{Stock1}, {Stock2}"
+        stocks_normalize = f"{Stock1}/(MAX({Stock1}) over())*100, {Stock2}/(MAX({Stock2}) over())*100"
     else: 
         inner = f"""(SELECT ADJ_Close as {Stock1}, Market_Date FROM LIRAZ.Stock_Data 
 WHERE Stock_ID = '{Stock1}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') 
 AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"""
         select = f'AVG({Stock1}) as {Stock1}'
         stocks = f"{Stock1}"
+        stocks_normalize = f"{Stock1}/(MAX({Stock1}) over())*100"
     outer = ""
     if (interval == 'Y'):
-        outer = f"SELECT CONCAT(YEAR, '-01-01'), {stocks} FROM (SELECT EXTRACT(year FROM Market_Date) as year, {select} FROM ({ inner }) GROUP BY EXTRACT(year FROM Market_Date) ORDER BY year)"
+        outer = f"SELECT CONCAT(YEAR, '-01-01'), {stocks_normalize} FROM (SELECT EXTRACT(year FROM Market_Date) as year, {select} FROM ({ inner }) GROUP BY EXTRACT(year FROM Market_Date) ORDER BY year)"
     elif (interval == 'M'):
-        outer = f"SELECT CONCAT(CONCAT(CONCAT(year,'-'), LPAD(month,2,'0')),'-01'), {stocks} FROM (SELECT EXTRACT(month FROM Market_Date) as month, EXTRACT(year FROM Market_Date) as year, {select} FROM ({ inner }) GROUP BY EXTRACT(month FROM Market_Date), EXTRACT(year FROM Market_Date))"
+        outer = f"SELECT CONCAT(CONCAT(CONCAT(year,'-'), LPAD(month,2,'0')),'-01'), {stocks_normalize} FROM (SELECT EXTRACT(month FROM Market_Date) as month, EXTRACT(year FROM Market_Date) as year, {select} FROM ({ inner }) GROUP BY EXTRACT(month FROM Market_Date), EXTRACT(year FROM Market_Date))"
     elif (interval == 'Q'):
-        outer = f"SELECT CONCAT(CONCAT(CONCAT(Year, '-'),LPAD(Quarter*3-2, 2, '0')), '-01'), {stocks} FROM (SELECT Quarter, Year, {select} FROM ( SELECT {stocks}, CEIL(TO_NUMBER(TO_CHAR(Market_Date, 'MM'))/3) Quarter, TO_CHAR(Market_Date, 'YYYY') Year FROM ({inner}) )  GROUP BY Quarter, Year ORDER BY Year, Quarter) "
+        outer = f"SELECT CONCAT(CONCAT(CONCAT(Year, '-'),LPAD(Quarter*3-2, 2, '0')), '-01'), {stocks_normalize} FROM (SELECT Quarter, Year, {select} FROM ( SELECT {stocks}, CEIL(TO_NUMBER(TO_CHAR(Market_Date, 'MM'))/3) Quarter, TO_CHAR(Market_Date, 'YYYY') Year FROM ({inner}) )  GROUP BY Quarter, Year ORDER BY Year, Quarter) "
     # elif (interval == 'W'):
     #     outer = f"SELECT WYR, {select} FROM (SELECT {stocks}, CONCAT(CONCAT(TO_CHAR(Market_Date, 'WW'), '-'),  TO_CHAR(Market_Date, 'YYYY')) as WYR, Market_Date FROM ({inner})) GROUP BY WYR ORDER BY WYR"
     else:
-        outer = f"SELECT Market_Date, {select} FROM ({ inner }) GROUP BY Market_Date"
-    #print(outer)
+        outer = f"SELECT Market_Date, {stocks_normalize} FROM ({ inner })"
+    print(outer)
     cursor.execute(outer)
     r = cursor.fetchall()
     r.insert(0, ["Date", Stock1, Stock2, Stock3])
