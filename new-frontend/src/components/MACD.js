@@ -100,11 +100,11 @@ class MACD extends React.Component {
           />
         </Grid>
 
-        {this.data && <ShowGraph data={this.data} options={options} />}
+        {this.data && <ShowGraph data={this.data} options={options} viewHeight="60vh"/>}
         {!this.data && 
-        <Backdrop>
+        <div>
           <CircularProgress color="inherit" />
-        </Backdrop>}
+        </div>}
       </div>
     );
   }

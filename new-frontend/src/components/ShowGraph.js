@@ -1,5 +1,6 @@
 import { Chart } from "react-google-charts";
 import Grid from '@material-ui/core/Grid';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 
@@ -22,17 +23,21 @@ export default function ShowGraph(props) {
   const options = props.options;
   
   return (
-      <Grid container>
+    <div>
+      {!data && (<CircularProgress  color="primary"/>)}
+      {data && (
+        <Grid container>
           <Grid item xs={12}>
           <Chart
             width={"100%"}
-            height={'60vh'}
+            height={(props.viewHeight) ?? '70vh'}
             chartType="LineChart"
             loader={<div>Loading Chart</div>}
             data={data}
             options={options}
           />            
         </Grid>
-      </Grid>
+      </Grid>)}
+    </div>
   )
 }

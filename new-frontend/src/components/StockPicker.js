@@ -21,10 +21,19 @@ class StockPicker extends React.Component{
         })
         .then((response) => response.json())
         .then((response) => {
-          console.log(response);
           this.stocks = response;
           this.setState({stocks: this.stocks});
         });
+
+        this.handleOnChange = (event) => {
+            let currentValue = event.target.value;
+            if (currentValue != ''){
+                if (this.stocks.find(row => (row[1] === currentValue)) != undefined) {
+                    this.props.onChange(currentValue);
+                }
+            }
+
+        };
     }
 
     render () {
@@ -32,10 +41,14 @@ class StockPicker extends React.Component{
             <Autocomplete
               id="stock-picker"
               options={this.stocks}
-              onSelect={this.props.onChange}
+              onSelect={this.handleOnChange}
               getOptionLabel={(option) => option[1]}
               style={{ width: 250, marginTop: "1em"}}
-              renderInput={(params) => <TextField {...params} label={this.props.title} variant="outlined" />}
+            //   value={this.stocks.find(row => row[1] === this.props.defaultValue)}
+              renderInput={(params) => 
+              <TextField {...params} 
+                label={this.props.title}
+                variant="outlined" />}
             />
           );
     }
