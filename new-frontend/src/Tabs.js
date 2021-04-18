@@ -103,7 +103,7 @@ export default function SimpleTabs() {
   const [endDate, setEndDate] = React.useState(new Date('2019-01-01'));
   const [selectedStock, setSelectedStock] = React.useState("AAPL");
   const [selectedStock2, setSelectedStock2] = React.useState("MSFT");
-  const [selectedStock3, setSelectedStock3] = React.useState("TSLA");
+  const [selectedStock3, setSelectedStock3] = React.useState("");
   const [interval, setInterval] = React.useState('M');
 
 
@@ -122,15 +122,15 @@ export default function SimpleTabs() {
   };
 
   const handleStockPickerChange = (symbol) => {
-    setSelectedStock(symbol.target.value); 
+    setSelectedStock(symbol); 
   };
 
   const handleStockPickerChange2 = (symbol) => {
-    setSelectedStock2(symbol.target.value); 
+    setSelectedStock2(symbol); 
   };
 
   const handleStockPickerChange3 = (symbol) => {
-    setSelectedStock3(symbol.target.value); 
+    setSelectedStock3(symbol); 
   };
 
   const handleIntervalChange = (event) => {
@@ -151,9 +151,27 @@ export default function SimpleTabs() {
 
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
         <Grid container justify="space-around">
-          <StockPicker onChange={handleStockPickerChange} title="Stock"/>
-          {(value == 0 || value == 1) && <StockPicker onChange={handleStockPickerChange2} title="Stock 2"/>}
-          {(value == 0) && <StockPicker onChange={handleStockPickerChange3} title="Stock 3"/>}
+          <StockPicker 
+            onChange={handleStockPickerChange} 
+            title="Stock" 
+            defaultValue={selectedStock}
+            />
+
+          {(value == 0 || value == 1) && (
+            <StockPicker 
+              onChange={handleStockPickerChange2} 
+              title="Stock 2"
+              defaultValue={selectedStock2}
+              />
+          )}
+          
+          {(value == 0) && (
+            <StockPicker 
+              onChange={handleStockPickerChange3} 
+              title="Stock 3"
+              defaultValue={selectedStock3}
+              />
+          )}
 
           <FormControl variant="outlined" className={classes.formControl}>
             <InputLabel id="demo-simple-select-outlined-label">Interval</InputLabel>
@@ -200,11 +218,24 @@ export default function SimpleTabs() {
       </MuiPickersUtilsProvider>
 
       <TabPanel value={value} index={0}>
-        <StockTrend />
+        <StockTrend 
+            stock1={selectedStock} 
+            stock2={selectedStock2}
+            stock3={selectedStock3}
+            interval={interval} 
+            start={startDate.toISOString().substr(0,10)} 
+            end={endDate.toISOString().substr(0,10)}
+            />
       </TabPanel>
       
       <TabPanel value={value} index={1}>
-        <Correlation stock1={selectedStock} stock2={selectedStock2} interval={interval} start={startDate.toISOString().substr(0,10)} end={endDate.toISOString().substr(0,10)}/>
+        <Correlation 
+          stock1={selectedStock} 
+          stock2={selectedStock2} 
+          interval={interval} 
+          start={startDate.toISOString().substr(0,10)} 
+          end={endDate.toISOString().substr(0,10)}
+          />
       </TabPanel>
       
       <TabPanel value={value} index={2}>
