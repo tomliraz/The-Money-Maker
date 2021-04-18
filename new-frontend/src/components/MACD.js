@@ -1,4 +1,6 @@
 import React from 'react';
+import TextField from '@material-ui/core/TextField';
+import Grid from '@material-ui/core/Grid';
 import ShowGraph from './ShowGraph';
 
 const baseURL = "http://localhost:8081";
@@ -7,46 +9,37 @@ class MACD extends React.Component {
   constructor (props) {
     super(props);
     this.stockSymbol = props.stock;
+    this.slowPeriod = props.slowPeriod;
+    this.fastPeriod = props.fastPeriod;
     this.data = null;
     // console.log(`${baseURL}/macd/${props.stock}/${props.fastPeriod}/${props.slowPeriod}/${props.start}/${props.end}`);
-    fetch(`${baseURL}/macd/${props.stock}/${props.fastPeriod}/${props.slowPeriod}/${props.start}/${props.end}`,
-    {
-      method: "GET",
-      mode: "cors",
-      headers: {
-        "Access-Control-Alow-Origin": "*",
-        "Content-Type": "application/json"
+    this.updateGraph = (props) => {
+      if (props.stock != ''){
+        fetch(`${baseURL}/macd/${props.stock}/${props.fastPeriod}/${props.slowPeriod}/${props.start}/${props.end}`,
+        {
+          method: "GET",
+          mode: "cors",
+          headers: {
+            "Access-Control-Alow-Origin": "*",
+            "Content-Type": "application/json"
+          }
+        })
+        .then((response) => response.json())
+        .then((response) => {
+          this.data = response.map((arr) => {
+            arr[0] = arr[0].substr(0,10);
+            return arr;
+          });
+          this.stockSymbol = props.stock;
+          this.setState({data: this.data, stockSymbol: this.stockSymbol});
+        });
       }
-    })
-    .then((response) => response.json())
-    .then((response) => {
-      this.data = response.map((arr) => {
-        arr[0] = arr[0].substr(0,10);
-        return arr;
-      });
-      this.setState({data: this.data});
-    });
+    }
+    this.updateGraph(props);
   };
 
   componentWillReceiveProps(nextProps) {
-    fetch(`${baseURL}/macd/${nextProps.stock}/${nextProps.fastPeriod}/${nextProps.slowPeriod}/${nextProps.start}/${nextProps.end}`,
-    {
-      method: "GET",
-      mode: "cors",
-      headers: {
-        "Access-Control-Alow-Origin": "*",
-        "Content-Type": "application/json"
-      }
-    })
-    .then((response) => response.json())
-    .then((response) => {
-      this.data = response.map((arr) => {
-        arr[0] = arr[0].substr(0,10);
-        return arr;
-      });
-      this.stockSymbol = nextProps.stock;
-      this.setState({data: this.nextProps, stockSymbol: this.stockSymbol});
-    });
+    this.updateGraph(nextProps);
   }
 
   render (){
@@ -64,7 +57,39 @@ class MACD extends React.Component {
 
     return (
       <div>
-        <ShowGraph data={this.data} options={options}/>
+        <TextField
+          label="Fast Period"
+          id="outlined-margin-dense"
+          defaultValue={this.props.fastPeriod}
+          value={this.slowPeriod}
+          onChange={(event) => {
+            this.fastPeriod = event.target.value;
+            this.setState({fastPeriod: this.fastPeriod});
+          }}
+          type="number"
+          min="2"
+          max="100"
+          margin="dense"
+          variant="outlined"
+        />
+
+        <TextField
+          label="Slow Period"
+          id="outlined-margin-dense"
+          defaultValue={this.props.slowPeriod}
+          value={this.slowPeriod}
+          onChange={(event) => {
+            this.slowPeriod = event.target.value;
+            this.setState({slowPeriod: this.slowPeriod});
+          }}
+          type="number"
+          min="2"
+          max="100"
+          margin="dense"
+          variant="outlined"
+        />
+
+        <ShowGraph data={this.data} options={options} />
       </div>
     );
   }
