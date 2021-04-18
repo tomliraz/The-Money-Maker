@@ -102,9 +102,9 @@ class MACD extends React.Component {
 
         {this.data && <ShowGraph data={this.data} options={options} />}
         {!this.data && 
-        <Backdrop>
+        <div>
           <CircularProgress color="inherit" />
-        </Backdrop>}
+        </div>}
       </div>
     );
   }
