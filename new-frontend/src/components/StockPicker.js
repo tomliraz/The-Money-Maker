@@ -32,8 +32,9 @@ class StockPicker extends React.Component{
             <Autocomplete
               id="stock-picker"
               options={this.stocks}
-              getOptionLabel={(option) => option.title}
-              style={{ width: 400 }}
+              onSelect={this.props.onChange}
+              getOptionLabel={(option) => option[1]}
+              style={{ width: 400, marginTop: "1em"}}
               renderInput={(params) => <TextField {...params} label="Stock" variant="outlined" />}
             />
           );

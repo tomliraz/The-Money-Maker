@@ -92,6 +92,7 @@ export default function SimpleTabs() {
   const [value, setValue] = React.useState(0);
   const [startDate, setStartDate] = React.useState(new Date('2018-01-01')); 
   const [endDate, setEndDate] = React.useState(new Date('2019-01-01'));
+  const [selectedStock, setSelectedStock] = React.useState("AAPL");
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -105,6 +106,10 @@ export default function SimpleTabs() {
   const handleEndDateChange = (date) => {
     if (isValidDate(date))
       setEndDate(date);
+  };
+
+  const handleStockPickerChange = (symbol) => {
+    setSelectedStock(symbol.target.value); 
   };
 
   return (
@@ -125,7 +130,7 @@ export default function SimpleTabs() {
 
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
         <Grid container justify="space-around">
-          <StockPicker />
+          <StockPicker onChange={handleStockPickerChange}/>
           <KeyboardDatePicker
             disableToolbar
             variant="inline"
@@ -168,7 +173,7 @@ export default function SimpleTabs() {
       </TabPanel>
       
       <TabPanel value={value} index={4}>
-        <MACD stock={"AAPL"} start={startDate.toISOString().substr(0,10)} end={endDate.toISOString().substr(0,10)} fastPeriod={11} slowPeriod={21}/>
+        <MACD stock={selectedStock} start={startDate.toISOString().substr(0,10)} end={endDate.toISOString().substr(0,10)} fastPeriod={11} slowPeriod={21}/>
       </TabPanel>
     </div>
   );
