@@ -30,7 +30,7 @@ export default function ShowGraph(props) {
           <Grid item xs={12}>
           <Chart
             width={"100%"}
-            height={(this.props.viewHeight) ?? '70vh'}
+            height={(props.viewHeight) ?? '70vh'}
             chartType="LineChart"
             loader={<div>Loading Chart</div>}
             data={data}
