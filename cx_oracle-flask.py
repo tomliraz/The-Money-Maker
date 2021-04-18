@@ -112,9 +112,10 @@ AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"""
     #     outer = f"SELECT WYR, {select} FROM (SELECT {stocks}, CONCAT(CONCAT(TO_CHAR(Market_Date, 'WW'), '-'),  TO_CHAR(Market_Date, 'YYYY')) as WYR, Market_Date FROM ({inner})) GROUP BY WYR ORDER BY WYR"
     else:
         outer = f"SELECT Market_Date, {select} FROM ({ inner }) GROUP BY Market_Date"
-    print(outer)
+    #print(outer)
     cursor.execute(outer)
     r = cursor.fetchall()
+    r.insert(0, ["Date", Stock1, Stock2, Stock3])
     #print(r)
     return json.dumps(r, default=datetimeConverter)
 
