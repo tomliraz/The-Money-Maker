@@ -8,7 +8,7 @@ class MACD extends React.Component {
   constructor (props) {
     super(props);
     this.stockSymbol = props.stock;
-    this.data = [];
+    this.data = null;
     // console.log(`${baseURL}/macd/${props.stock}/${props.fastPeriod}/${props.slowPeriod}/${props.start}/${props.end}`);
     fetch(`${baseURL}/macd/${props.stock}/${props.fastPeriod}/${props.slowPeriod}/${props.start}/${props.end}`,
     {

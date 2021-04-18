@@ -103,7 +103,7 @@ export default function SimpleTabs() {
       </TabPanel>
       
       <TabPanel value={value} index={1}>
-        <Correlation />
+        <Correlation stock1={"AAPL"} stock2={"MSFT"} interval={"Y"} start={'2000-01-01'} end={'2008-01-01'}/>
       </TabPanel>
       
       <TabPanel value={value} index={2}>
