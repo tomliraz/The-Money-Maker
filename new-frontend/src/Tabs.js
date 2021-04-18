@@ -7,12 +7,19 @@ import Tab from '@material-ui/core/Tab';
 import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import HomePage from './components/Home';
+import Grid from '@material-ui/core/Grid';
 import StockTrend from './components/StockTrend';
 import Correlation from './components/Correlation'
 import Seasonal from './components/Seasonal'
 import Volatility from './components/Volatility'
-import MACD from './components/MACD'
-import ShowGraph from './components/ShowGraph';
+import MACD from './components/MACD';
+import DateFnsUtils from '@date-io/date-fns';
+import StockPicker from './components/StockPicker';
+import {
+  MuiPickersUtilsProvider,
+  KeyboardTimePicker,
+  KeyboardDatePicker,
+} from '@material-ui/pickers';
 
 const drawerWidth = 240;
 
@@ -43,6 +50,10 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+function isValidDate(d) {
+  return d instanceof Date && !isNaN(d);
+}
+
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
 
@@ -50,8 +61,8 @@ function TabPanel(props) {
     <div
       role="tabpanel"
       hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
+      id={`chart-tabpanel-${index}`}
+      aria-labelledby={`chart-tab-${index}`}
       {...other}
     >
       {value === index && (
@@ -79,16 +90,26 @@ function a11yProps(index) {
 export default function SimpleTabs() {
   const classes = useStyles();
   const [value, setValue] = React.useState(0);
+  const [startDate, setStartDate] = React.useState(new Date('2018-01-01')); 
+  const [endDate, setEndDate] = React.useState(new Date('2019-01-01'));
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
 
+  const handleStartDateChange = (date) => {
+    if (isValidDate(date))
+      setStartDate(date);
+  };
 
+  const handleEndDateChange = (date) => {
+    if (isValidDate(date))
+      setEndDate(date);
+  };
 
   return (
     <div className={classes.root}>
-      <AppBar position="static" className={classes.appBar}>
+      <AppBar position="static">
         <Tabs value={value} onChange={handleChange} aria-label="simple tabs example">
           <Tab label="Stock Trend" {...a11yProps(0)} />
           <Tab label="Correlation" {...a11yProps(1)} />
@@ -101,6 +122,38 @@ export default function SimpleTabs() {
       <TabPanel value={value} index={0}>
         <StockTrend />
       </TabPanel>
+
+      <MuiPickersUtilsProvider utils={DateFnsUtils}>
+        <Grid container justify="space-around">
+          <StockPicker />
+          <KeyboardDatePicker
+            disableToolbar
+            variant="inline"
+            margin="normal"
+            format="yyyy-MM-dd"
+            label="Start Date"
+            defaultValue="2018-01-01"
+            value={startDate}
+            onChange={handleStartDateChange}
+            KeyboardButtonProps={{
+              'aria-label': 'change start date',
+            }}
+          />
+          <KeyboardDatePicker
+            disableToolbar
+            variant="inline"
+            margin="normal"
+            label="End Date"
+            format="yyyy-MM-dd"
+            defaultValue="2019-01-01"
+            value={endDate}
+            onChange={handleEndDateChange}
+            KeyboardButtonProps={{
+              'aria-label': 'change end date',
+            }}
+          />
+        </Grid>
+      </MuiPickersUtilsProvider>
       
       <TabPanel value={value} index={1}>
         <Correlation />
@@ -115,7 +168,7 @@ export default function SimpleTabs() {
       </TabPanel>
       
       <TabPanel value={value} index={4}>
-        <MACD stock={"AAPL"} start={'2000-01-01'} end={'2000-02-01'} fastPeriod={11} slowPeriod={21}/>
+        <MACD stock={"AAPL"} start={startDate.toISOString().substr(0,10)} end={endDate.toISOString().substr(0,10)} fastPeriod={11} slowPeriod={21}/>
       </TabPanel>
     </div>
   );
