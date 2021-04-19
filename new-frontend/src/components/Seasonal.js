@@ -1,28 +1,60 @@
 import React from 'react';
 import ShowGraph from './ShowGraph';
  
-function Seasonal() {
+const baseURL = "http://localhost:8081";
 
-    const data = [
-        {
-          label: 'Series 1',
-          data: [[0, -2], [1, 2], [2, 4], [3, 2], [4, 7]]
-        },
-        {
-          label: 'Series 2',
-          data: [[0, 3], [1, 1], [2, 5], [3, 6], [4, 4]]
+class Seasonal extends React.Component {
+
+  constructor (props) {
+    super(props);
+    this.stockSymbol = props.stock;
+    this.data = [];
+    this.setGraph = (locProps) => {
+      fetch(`${baseURL}/seasonal/${locProps.stock}/${locProps.interval}/${locProps.start}/${locProps.end}`,
+      {
+        method: "GET",
+        mode: "cors",
+        headers: {
+          "Access-Control-Alow-Origin": "*",
+          "Content-Type": "application/json"
         }
-      ];
-    
-      const axis = [
-        { primary: true, type: 'linear', position: 'bottom' },
-        { type: 'linear', position: 'left' }
-      ];
+      })
+      .then((response) => response.json())
+      .then((response) => {
+        this.data = response;
+        this.setState({data: this.data});
+      });
+    }
+    this.setGraph(props);
+  };
+
+  componentWillReceiveProps(props) {
+    this.stockSymbol = props.stock;
+    this.setState({ stockSymbol: this.stockSymbol });
+    this.setGraph(props);
+  }
+
+  render() {
+    const options = {
+      title: 'Seasonal Trends of ' + this.stockSymbol1,
+      chartArea: { width: '80%' },
+      hAxis: {
+        title: 'Date',
+      },
+      vAxis: {
+        title: 'Correlation Coefficient',
+        viewWindow: {
+        min: -1,
+        max: 1
+        }
+      },
+    };
 
     return (
-        <div>
-            <ShowGraph data={data} axis={axis}/>
-        </div>
+      <div>
+        <ShowGraph data={this.data} options={options}/>
+      </div>
     );
+  }
 }
 export default Seasonal;

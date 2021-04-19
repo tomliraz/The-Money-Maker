@@ -10,6 +10,7 @@ class StockPicker extends React.Component{
     constructor(props) {
         super(props);
         this.stocks = [];
+        this.value_ = props.value;
         fetch(`${baseURL}/stocks`,
         {
           method: "GET",
@@ -38,19 +39,24 @@ class StockPicker extends React.Component{
 
     render () {
         return (
-            <Autocomplete
-              id="stock-picker"
-              options={this.stocks}
-              onSelect={this.handleOnChange}
-              getOptionLabel={(option) => option[1]}
-              style={{ width: 250, marginTop: "1em"}}
-            //   value={this.stocks.find(row => row[1] === this.props.defaultValue)}
-              renderInput={(params) => 
-              <TextField {...params} 
-                label={this.props.title}
-                variant="outlined" />}
-            />
-          );
+          <div>
+            {this.stocks && (
+              <Autocomplete
+                id="stock-picker"
+                options={this.stocks}
+                value={this.value}
+                onSelect={this.handleOnChange}
+                getOptionLabel={(option) => option[1]}
+                style={{ width: 250, marginTop: "1em"}}
+              //   value={this.stocks.find(row => row[1] === this.props.defaultValue)}
+                renderInput={(params) => 
+                <TextField {...params} 
+                  label={this.props.title}
+                  variant="outlined" />}
+              />
+            )}
+          </div>
+        );
     }
 }
 

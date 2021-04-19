@@ -104,11 +104,17 @@ export default function SimpleTabs() {
   const [selectedStock, setSelectedStock] = React.useState("AAPL");
   const [selectedStock2, setSelectedStock2] = React.useState("MSFT");
   const [selectedStock3, setSelectedStock3] = React.useState("");
-  const [interval, setInterval] = React.useState('M');
+  const [interval, setInterval] = React.useState('D');
 
 
   const handleChange = (event, newValue) => {
-    setValue(newValue);
+    if (newValue != 0) {
+      setValue(newValue);
+      setInterval('M');
+    } else {
+      setValue(newValue);
+      setInterval('D');
+    }
   };
 
   const handleStartDateChange = (date) => {
@@ -126,6 +132,7 @@ export default function SimpleTabs() {
   };
 
   const handleStockPickerChange2 = (symbol) => {
+    console.log(symbol);
     setSelectedStock2(symbol); 
   };
 
@@ -154,22 +161,22 @@ export default function SimpleTabs() {
           <StockPicker 
             onChange={handleStockPickerChange} 
             title="Stock" 
-            defaultValue={selectedStock}
+            value={selectedStock}
             />
 
-          {(value == 0 || value == 1) && (
+          {(value == 0 || value == 1 || value == 3) && (
             <StockPicker 
               onChange={handleStockPickerChange2} 
               title="Stock 2"
-              defaultValue={selectedStock2}
+              value={selectedStock2}
               />
           )}
           
-          {(value == 0) && (
+          {(value == 0 || value == 3) && (
             <StockPicker 
               onChange={handleStockPickerChange3} 
               title="Stock 3"
-              defaultValue={selectedStock3}
+              value={selectedStock3}
               />
           )}
 
@@ -182,6 +189,7 @@ export default function SimpleTabs() {
               onChange={handleIntervalChange}
               label="Interval"
             >
+              {(value == 0) && <MenuItem value={'D'}>Daily</MenuItem> }
               <MenuItem value={'M'}>Monthly</MenuItem>
               <MenuItem value={'Q'}>Quarterly</MenuItem>
               <MenuItem value={'Y'}>Yearly</MenuItem>
@@ -194,7 +202,6 @@ export default function SimpleTabs() {
             margin="normal"
             format="yyyy-MM-dd"
             label="Start Date"
-            defaultValue="2018-01-01"
             value={startDate}
             onChange={handleStartDateChange}
             KeyboardButtonProps={{
@@ -207,7 +214,6 @@ export default function SimpleTabs() {
             margin="normal"
             label="End Date"
             format="yyyy-MM-dd"
-            defaultValue="2019-01-01"
             value={endDate}
             onChange={handleEndDateChange}
             KeyboardButtonProps={{
@@ -243,7 +249,14 @@ export default function SimpleTabs() {
       </TabPanel>
       
       <TabPanel value={value} index={3}>
-        <Volatility />
+        <Volatility 
+          stock1={selectedStock} 
+          stock2={selectedStock2}
+          stock3={selectedStock3}
+          interval={interval} 
+          start={startDate.toISOString().substr(0,10)} 
+          end={endDate.toISOString().substr(0,10)}
+        />      
       </TabPanel>
       
       <TabPanel value={value} index={4}>
