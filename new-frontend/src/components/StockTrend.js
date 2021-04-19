@@ -77,7 +77,7 @@ class StockTrend extends React.Component {
         title: 'Date',
       },
       vAxis: {
-        title: 'Price',
+        title: 'Normalized Price',
       },
     };
 
