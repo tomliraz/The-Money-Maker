@@ -174,8 +174,8 @@ def get_seasonal(id, beginYear, endYear, start, stop):
         stockDataQuery = f"WITH Seasonal (STOCK_ID, S_Average) as (SELECT STOCK_ID, AVG(ADJ_CLOSE) FROM LIRAZ.Stock_Data WHERE MARKET_DATE <= to_date('{seasonStop}','YYYY/MM/DD') and MARKET_DATE >= to_date('{seasonStart}','YYYY/MM/DD') and STOCK_ID = '{id}' GROUP BY STOCK_ID), Period(STOCK_ID, P_Average) as (SELECT STOCK_ID, AVG(ADJ_CLOSE) FROM LIRAZ.Stock_Data WHERE MARKET_DATE <= to_date('{periodStop}','YYYY/MM/DD') and MARKET_DATE >= to_date('{periodStart}','YYYY/MM/DD') and STOCK_ID = '{id}' GROUP BY STOCK_ID) SELECT (S_Average - P_Average) / P_Average * 100 FROM Seasonal, Period"
         cursor.execute(stockDataQuery)
         r = cursor.fetchall()
-        #print(r[0])
-        temp.append([beginYear, r[0]])
+        adjYear = str(beginYear) + "-01-01"
+        temp.append([adjYear, r[0][0]])
         beginYear += 1
     temp.insert(0, ["Date", "Seasonal Ratio"])
     return json.dumps(temp, default=datetimeConverter)
