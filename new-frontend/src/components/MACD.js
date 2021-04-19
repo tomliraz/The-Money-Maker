@@ -52,7 +52,7 @@ class MACD extends React.Component {
         title: 'Date',
       },
       vAxis: {
-        title: 'Price',
+        title: 'Moving Average Convergence Divergence',
       },
     };
 
