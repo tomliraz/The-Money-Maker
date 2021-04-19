@@ -76,7 +76,6 @@ class Seasonal extends React.Component {
               this.startYear = event.target.value;
               this.setState({startYear: this.startYear});
               var newProps = {...this.props};
-              newProps.startYear = event.target.value;
               this.setGraph(newProps);
             }}
             type="number"
@@ -92,7 +91,6 @@ class Seasonal extends React.Component {
               this.endYear = event.target.value;
               this.setState({endYear: this.endYear});
               var newProps = {...this.props};
-              newProps.endYear = event.target.value;
               this.setGraph(newProps);
             }}
             type="number"
@@ -109,7 +107,6 @@ class Seasonal extends React.Component {
               this.startDay = newValue;
               this.setState({startDay: this.startDay});
               var newProps = {...this.props};
-              newProps.startDay = newValue;
               this.updateGraph(newProps);
             }}
             type="text"
@@ -126,7 +123,6 @@ class Seasonal extends React.Component {
               this.endDay = newValue;
               this.setState({endDay: this.endDay});
               var newProps = {...this.props};
-              newProps.endDay = newValue;
               this.updateGraph(newProps);
             }}
             type="text"
