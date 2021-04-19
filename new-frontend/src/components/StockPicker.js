@@ -10,6 +10,11 @@ class StockPicker extends React.Component{
     constructor(props) {
         super(props);
         this.stocks = [];
+        this.value_ = props.value;
+        if (!(Array.isArray(this.value_))) {
+          console.log(this.value_);
+          this.value_ = ["", this.value_];
+        }
         fetch(`${baseURL}/stocks`,
         {
           method: "GET",
@@ -25,32 +30,44 @@ class StockPicker extends React.Component{
           this.setState({stocks: this.stocks});
         });
 
-        this.handleOnChange = (event) => {
-            let currentValue = event.target.value;
+        this.handleOnChange = (stock) => {
+          if (stock){
+            let currentValue = stock[1];
             if (currentValue != ''){
                 if (this.stocks.find(row => (row[1] === currentValue)) != undefined) {
                     this.props.onChange(currentValue);
                 }
             }
-
+          } else {
+            this.props.onChange("");
+          }
         };
     }
 
     render () {
         return (
-            <Autocomplete
-              id="stock-picker"
-              options={this.stocks}
-              onSelect={this.handleOnChange}
-              getOptionLabel={(option) => option[1]}
-              style={{ width: 250, marginTop: "1em"}}
-            //   value={this.stocks.find(row => row[1] === this.props.defaultValue)}
-              renderInput={(params) => 
-              <TextField {...params} 
-                label={this.props.title}
-                variant="outlined" />}
-            />
-          );
+          <div>
+            {this.stocks && (
+              <Autocomplete
+                id="stock-picker"
+                options={this.stocks}
+                value={this.value_}
+                onChange={(event, newValue) => {
+                  this.value_ = newValue;
+                  this.setState({ value_: newValue });
+                  this.handleOnChange(newValue);
+                }}
+                getOptionLabel={(option) => option[1]}
+                style={{ width: 250, marginTop: "1em"}}
+              //   value={this.stocks.find(row => row[1] === this.props.defaultValue)}
+                renderInput={(params) => 
+                <TextField {...params} 
+                  label={this.props.title}
+                  variant="outlined" />}
+              />
+            )}
+          </div>
+        );
     }
 }
 
