@@ -175,7 +175,7 @@ def get_seasonal(id, beginYear, endYear, start, stop):
         cursor.execute(stockDataQuery)
         r = cursor.fetchall()
         #print(r[0])
-        temp.append([beginYear, r[0][0]])
+        temp.append([str(beginYear), r[0][0]])
         beginYear += 1
     temp.insert(0, ["Date", "Seasonal Ratio"])
     return json.dumps(temp, default=datetimeConverter)
