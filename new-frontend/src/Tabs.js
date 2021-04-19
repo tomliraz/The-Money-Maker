@@ -115,6 +115,10 @@ export default function SimpleTabs() {
       setValue(newValue);
       setInterval('D');
     }
+
+    if (newValue == 1 && !selectedStock2) {
+      setSelectedStock2("MSFT");
+    }
   };
 
   const handleStartDateChange = (date) => {
@@ -132,7 +136,6 @@ export default function SimpleTabs() {
   };
 
   const handleStockPickerChange2 = (symbol) => {
-    console.log(symbol);
     setSelectedStock2(symbol); 
   };
 
