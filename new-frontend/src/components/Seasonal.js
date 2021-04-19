@@ -56,7 +56,7 @@ class Seasonal extends React.Component {
         title: 'Date',
       },
       vAxis: {
-        title: 'Value',
+        title: 'Season to Year Ratio',
         // viewWindow: {
         // min: -1,
         // max: 1
