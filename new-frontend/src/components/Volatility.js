@@ -74,7 +74,7 @@ class Volatility extends React.Component {
         title: 'Date',
       },
       vAxis: {
-        title: 'Price',
+        title: 'Standard Deviation',
       },
     };
 

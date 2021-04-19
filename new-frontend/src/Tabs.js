@@ -200,33 +200,37 @@ export default function SimpleTabs() {
               </Select>
             </FormControl>) }
 
-
-          <KeyboardDatePicker
-            disableToolbar
-            variant="inline"
-            margin="normal"
-            format="yyyy-MM-dd"
-            label="Start Date"
-            value={startDate}
-            onChange={handleStartDateChange}
-            KeyboardButtonProps={{
-              'aria-label': 'change start date',
-            }}
-          />
-          <KeyboardDatePicker
-            disableToolbar
-            variant="inline"
-            margin="normal"
-            label="End Date"
-            format="yyyy-MM-dd"
-            value={endDate}
-            onChange={handleEndDateChange}
-            KeyboardButtonProps={{
-              'aria-label': 'change end date',
-            }}
-          />
+          {(value != 2) && (
+            <div>
+              <KeyboardDatePicker
+                disableToolbar
+                variant="inline"
+                margin="normal"
+                format="yyyy-MM-dd"
+                label="Start Date"
+                value={startDate}
+                onChange={handleStartDateChange}
+                KeyboardButtonProps={{
+                  'aria-label': 'change start date',
+                }}
+                style={{ marginRight: "1em"}}
+              />
+              <KeyboardDatePicker
+                disableToolbar
+                variant="inline"
+                margin="normal"
+                label="End Date"
+                format="yyyy-MM-dd"
+                value={endDate}
+                onChange={handleEndDateChange}
+                KeyboardButtonProps={{
+                  'aria-label': 'change end date',
+                }}
+              />
+            </div>
+          )}
         </Grid>
-      </MuiPickersUtilsProvider>
+      </MuiPickersUtilsProvider> 
 
       <TabPanel value={value} index={0}>
         <StockTrend 

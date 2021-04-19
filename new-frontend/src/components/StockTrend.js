@@ -47,7 +47,10 @@ class StockTrend extends React.Component {
       .then((response) => response.json())
       .then((response) => {
         console.log(response);
-        this.data = response;
+        this.data = response.map((arr) => {
+          arr[0] = arr[0].substr(0,10);
+          return arr;
+        });;
         this.setState({ 
           data: this.data, 
           stockSymbol1: this.stockSymbol1, 
