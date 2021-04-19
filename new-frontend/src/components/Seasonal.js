@@ -17,7 +17,7 @@ class Seasonal extends React.Component {
     this.endDay = "06-01";
 
     this.setGraph = (locProps) => {
-      fetch(`${baseURL}/seasonal/${locProps.stock}/${locProps.startYear}/${locProps.endYear}/${locProps.startDay}/${locProps.endDay}`,
+      fetch(`${baseURL}/seasonal/${locProps.stock}/${this.startYear}/${this.endYear}/${this.startDay}/${this.endDay}`,
       {
         method: "GET",
         mode: "cors",
@@ -39,6 +39,7 @@ class Seasonal extends React.Component {
     tempProps.endYear = 2019;
     tempProps.startDay = "01-01";
     tempProps.endDay = "06-01";
+    this.props = tempProps;
     this.setGraph(tempProps);
   };
 
@@ -72,11 +73,11 @@ class Seasonal extends React.Component {
             id="start-year-input"
             value={this.startYear}
             onChange={(event, newValue) => {
-              this.startYear = newValue;
+              this.startYear = event.target.value;
               this.setState({startYear: this.startYear});
               var newProps = {...this.props};
-              newProps.startYear = newValue;
-              this.updateGraph(newProps);
+              newProps.startYear = event.target.value;
+              this.setGraph(newProps);
             }}
             type="number"
             margin="dense"
@@ -88,11 +89,11 @@ class Seasonal extends React.Component {
             id="start-year-input"
             value={this.endYear}
             onChange={(event, newValue) => {
-              this.endYear = newValue;
+              this.endYear = event.target.value;
               this.setState({endYear: this.endYear});
               var newProps = {...this.props};
-              newProps.endYear = newValue;
-              this.updateGraph(newProps);
+              newProps.endYear = event.target.value;
+              this.setGraph(newProps);
             }}
             type="number"
             margin="dense"
