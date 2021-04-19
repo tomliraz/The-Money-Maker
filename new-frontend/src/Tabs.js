@@ -183,21 +183,23 @@ export default function SimpleTabs() {
               />
           )}
 
-          <FormControl variant="outlined" className={classes.formControl}>
-            <InputLabel id="demo-simple-select-outlined-label">Interval</InputLabel>
-            <Select
-              labelId="interval-select-outlined-label"
-              id="interval-select-outlined"
-              value={interval}
-              onChange={handleIntervalChange}
-              label="Interval"
-            >
-              {(value == 0) && <MenuItem value={'D'}>Daily</MenuItem> }
-              <MenuItem value={'M'}>Monthly</MenuItem>
-              <MenuItem value={'Q'}>Quarterly</MenuItem>
-              <MenuItem value={'Y'}>Yearly</MenuItem>
-            </Select>
-          </FormControl>
+          { (value !== 2 && value !== 4) &&
+            (<FormControl variant="outlined" className={classes.formControl}>
+              <InputLabel id="demo-simple-select-outlined-label">Interval</InputLabel>
+              <Select
+                labelId="interval-select-outlined-label"
+                id="interval-select-outlined"
+                value={interval}
+                onChange={handleIntervalChange}
+                label="Interval"
+              >
+                {(value == 0) && <MenuItem value={'D'}>Daily</MenuItem> }
+                <MenuItem value={'M'}>Monthly</MenuItem>
+                <MenuItem value={'Q'}>Quarterly</MenuItem>
+                <MenuItem value={'Y'}>Yearly</MenuItem>
+              </Select>
+            </FormControl>) }
+
 
           <KeyboardDatePicker
             disableToolbar
@@ -248,7 +250,7 @@ export default function SimpleTabs() {
       </TabPanel>
       
       <TabPanel value={value} index={2}>
-        <Seasonal />
+        <Seasonal stock={selectedStock} />
       </TabPanel>
       
       <TabPanel value={value} index={3}>
