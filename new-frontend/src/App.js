@@ -8,6 +8,10 @@ import {
 } from "react-router-dom";
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import { ThemeProvider } from '@material-ui/core/styles';
+import { createMuiTheme } from '@material-ui/core/styles';
+import green from '@material-ui/core/colors/green';
+import grey from '@material-ui/core/colors/grey';
 import HomeNav from './NavBar';
 import TabBar from './Tabs';
 const drawerWidth = 240;
@@ -30,12 +34,24 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const theme = createMuiTheme({
+  palette: {
+    primary: {
+      main: green[800],
+    },
+    secondary: {
+      main: grey[100]
+    }
+  },
+});
+
 export default function App() {
 
   const classes = useStyles();
 
   return (
     <Router>
+      <ThemeProvider theme={theme}>
       <div>
 
         <HomeNav className={classes.appBar} />
@@ -51,6 +67,7 @@ export default function App() {
           </Switch>
         </div>
       </div>
+      </ThemeProvider>
     </Router>
   );
 };
