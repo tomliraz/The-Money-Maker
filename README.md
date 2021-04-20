@@ -1,5 +1,5 @@
-# The-Money-Maker
-
+# The Money Maker
+## A tool for technical analysis of traded investment assets. Uses computational based SQL queries to identify trends and help with investment decisions. 
 ## Running Flask Server
 
 `pip install -r requirements.txt`
