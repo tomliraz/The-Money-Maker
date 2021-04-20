@@ -120,7 +120,8 @@ def get_correlation(Stock1, Stock2, start, stop, interval='D'):
     connection = pool.acquire()
     cursor = connection.cursor()
     
-    stockDataQuery = f"(SELECT s1.stock_ID Stock1, s1.Adj_Close Price1, s2.Stock_ID Stock2, s2.Adj_Close Price2, s1.Market_Date Market_Date FROM LIRAZ.Stock_Data s1 JOIN LIRAZ.Stock_Data s2 ON s1.Market_Date = s2.Market_Date Where s1.Stock_ID = '{Stock1}' AND s2.Stock_ID = '{Stock2}' AND s1.Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND s1.Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"
+    stockDataQuery = f"""(SELECT s1.stock_ID Stock1, s1.Adj_Close Price1, s2.Stock_ID Stock2, s2.Adj_Close Price2, s1.Market_Date Market_Date FROM LIRAZ.Stock_Data s1 JOIN LIRAZ.Stock_Data s2 ON s1.Market_Date = s2.Market_Date 
+    Where s1.Stock_ID = '{Stock1}' AND s2.Stock_ID = '{Stock2}' AND s1.Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND s1.Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD'))"""
     
     intervalQuery = f""
     namedIntervalQuery=f""
@@ -142,13 +143,20 @@ def get_correlation(Stock1, Stock2, start, stop, interval='D'):
         nameOfInterval = f"year, quarter"
         formatting = "CONCAT(CONCAT(year, CONCAT('-', LPAD(3*quarter-2, 2,'0'))), CONCAT('-', '01'))"
         
-    intervalAverages = f"SELECT Stock1, AVG(Price1) avg_price1, Stock2, AVG(Price2) avg_price2, { namedIntervalQuery } FROM ({ stockDataQuery }) GROUP BY Stock1, Stock2, { intervalQuery }"
+    intervalAverages = f"""SELECT Stock1, AVG(Price1) avg_price1, Stock2, AVG(Price2) avg_price2, { namedIntervalQuery } 
+    FROM ({ stockDataQuery }) GROUP BY Stock1, Stock2, { intervalQuery }"""
 
-    summedDemeanedPrices = f"WITH avgs AS ({ intervalAverages }), stocks AS (SELECT Price1, Price2, {namedIntervalQuery} FROM ({ stockDataQuery })) SELECT Stock1, Stock2, (SUM((Price1 - AVG_Price1) * (Price2 - AVG_Price2)))/(COUNT(Price1) - 1) AS cov, {nameOfInterval} FROM avgs NATURAL JOIN stocks GROUP BY Stock1, Stock2, {nameOfInterval}"
+    summedDemeanedPrices = f"""WITH avgs AS ({ intervalAverages }), 
+    stocks AS (SELECT Price1, Price2, {namedIntervalQuery} FROM ({ stockDataQuery })) 
+    SELECT Stock1, Stock2, (SUM((Price1 - AVG_Price1) * (Price2 - AVG_Price2)))/(COUNT(Price1) - 1) AS cov, {nameOfInterval} 
+    FROM avgs NATURAL JOIN stocks GROUP BY Stock1, Stock2, {nameOfInterval}"""
 
-    stdDevProduct = f"WITH stocks AS ({ stockDataQuery }) SELECT Stock1, Stock2, STDDEV(Price1)* STDDEV(Price2) AS stddev_Product, { namedIntervalQuery } FROM stocks GROUP BY Stock1, Stock2, { intervalQuery }"
+    stdDevProduct = f"""WITH stocks AS ({ stockDataQuery }) 
+    SELECT Stock1, Stock2, STDDEV(Price1)* STDDEV(Price2) AS stddev_Product, { namedIntervalQuery } 
+    FROM stocks GROUP BY Stock1, Stock2, { intervalQuery }"""
 
-    correlation = f"SELECT {nameOfInterval}, Cov / stddev_Product AS corr FROM ({ summedDemeanedPrices }) NATURAL JOIN ({ stdDevProduct })"
+    correlation = f"""SELECT {nameOfInterval}, Cov / stddev_Product AS corr 
+    FROM ({ summedDemeanedPrices }) NATURAL JOIN ({ stdDevProduct })"""
 
     formattedCorrelation = f"SELECT {formatting}, corr FROM ({correlation}) ORDER BY {formatting}"
 
@@ -208,20 +216,37 @@ def get_volatility(Stock1, interval, start, stop, Stock2='', Stock3=''):
     initial=[]
 
     if(Stock2==''):
-        volatility = f"SELECT {namedIntervalQuery}, STDDEV(adj_close)/AVG(adj_close)*100 std FROM LIRAZ.stock_data WHERE stock_id = '{Stock1}' AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD') GROUP BY {intervalQuery}"
+        volatility = f"""SELECT {namedIntervalQuery}, STDDEV(adj_close)/AVG(adj_close)*100 std 
+        FROM LIRAZ.stock_data 
+        WHERE stock_id = '{Stock1}' 
+        AND Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD') 
+        GROUP BY {intervalQuery}"""
+
         formattedVolatility = f"SELECT {formatting}, std FROM ({volatility}) ORDER BY {formatting}"
         initial=["Date", Stock1]
     elif(Stock3==''):
-        stockDataQuery = f"SELECT one.market_date , one.adj_close close_one, two.adj_close close_two FROM LIRAZ.stock_data one JOIN LIRAZ.stock_data two ON one.market_date=two.market_date WHERE one.stock_id = '{Stock1}' AND two.stock_id = '{Stock2}' AND one.Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND one.Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD')"
-        volatility = f"SELECT {namedIntervalQuery}, STDDEV(close_one)/AVG(close_one)*100 std1, STDDEV(close_two)/AVG(close_two)*100 std2 FROM ({stockDataQuery}) GROUP BY {intervalQuery}"
+        stockDataQuery = f"""SELECT one.market_date , one.adj_close close_one, two.adj_close close_two 
+        FROM LIRAZ.stock_data one JOIN LIRAZ.stock_data two ON one.market_date=two.market_date 
+        WHERE one.stock_id = '{Stock1}' AND two.stock_id = '{Stock2}' AND one.Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND one.Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD')"""
+        
+        volatility = f"""SELECT {namedIntervalQuery}, STDDEV(close_one)/AVG(close_one)*100 std1, STDDEV(close_two)/AVG(close_two)*100 std2 
+        FROM ({stockDataQuery}) GROUP BY {intervalQuery}"""
+
         formattedVolatility = f"SELECT {formatting}, std1, std2 FROM ({volatility}) ORDER BY {formatting}"
         initial=["Date", Stock1, Stock2]
     else:
-        stockDataQuery = f"SELECT one.market_date , one.adj_close close_one, two.adj_close close_two, three.adj_close close_three FROM (LIRAZ.stock_data one JOIN LIRAZ.stock_data two ON one.market_date=two.market_date) JOIN LIRAZ.stock_data three ON one.market_date=three.market_date WHERE one.stock_id = '{Stock1}' AND two.stock_id = '{Stock2}' AND three.stock_id = '{Stock3}' AND one.Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND one.Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD')"
-        volatility = f"SELECT {namedIntervalQuery}, STDDEV(close_one)/AVG(close_one)*100 std1, STDDEV(close_two)/AVG(close_two)*100 std2, STDDEV(close_three)/AVG(close_three)*100 std3 FROM ({stockDataQuery}) GROUP BY {intervalQuery}"
-        formattedVolatility = f"SELECT {formatting}, std1, std2, std3 FROM ({volatility}) ORDER BY {formatting}"
-        initial=["Date", Stock1, Stock2, Stock3]
+        stockDataQuery = f"""SELECT one.market_date , one.adj_close close_one, two.adj_close close_two, three.adj_close close_three 
+        FROM (LIRAZ.stock_data one JOIN LIRAZ.stock_data two ON one.market_date=two.market_date) 
+        JOIN LIRAZ.stock_data three ON one.market_date=three.market_date WHERE one.stock_id = '{Stock1}' AND two.stock_id = '{Stock2}' AND three.stock_id = '{Stock3}' 
+        AND one.Market_Date >= TO_DATE('{start}', 'YYYY-MM-DD') AND one.Market_Date <= TO_DATE('{stop}', 'YYYY-MM-DD')"""
 
+        volatility = f"""SELECT {namedIntervalQuery}, STDDEV(close_one)/AVG(close_one)*100 std1, STDDEV(close_two)/AVG(close_two)*100 std2, STDDEV(close_three)/AVG(close_three)*100 std3 
+        FROM ({stockDataQuery}) GROUP BY {intervalQuery}"""
+        
+        formattedVolatility = f"""SELECT {formatting}, std1, std2, std3 FROM ({volatility}) ORDER BY {formatting}"""
+        initial=["Date", Stock1, Stock2, Stock3]
+    
+    print("\n"+formattedVolatility)
     cursor.execute(formattedVolatility)
     r = cursor.fetchall()
     r.insert(0,initial)
@@ -239,9 +264,13 @@ def get_MACD(Stock1, slow, fast, start, stop):
 
     stockDataQuery = f"SELECT ROW_NUMBER() OVER(ORDER BY market_date) k, market_date, adj_close FROM LIRAZ.stock_data WHERE stock_id = '{Stock1}' AND market_date >= TO_DATE('{start}', 'YYYY-MM-DD') AND market_date <= TO_DATE('{stop}', 'YYYY-MM-DD')"
     
-    EMA_slow = f"WITH EMA (n,cdate,val) AS (SELECT * FROM ({stockDataQuery}) WHERE k = 1 UNION ALL SELECT n+1, market_date, adj_close*({k_slow}) + val*(1-{k_slow}) FROM EMA JOIN ({stockDataQuery}) d on EMA.n+1 = d.k) SELECT cdate,val slowval FROM EMA"
+    EMA_slow = f"""WITH EMA (n,cdate,val) AS (SELECT * FROM ({stockDataQuery}) WHERE k = 1 UNION ALL SELECT n+1, market_date, adj_close*({k_slow}) + val*(1-{k_slow}) 
+    FROM EMA JOIN ({stockDataQuery}) d on EMA.n+1 = d.k) 
+    SELECT cdate,val slowval FROM EMA"""
     
-    EMA_fast = f"WITH EMA (n,cdate,val) AS (SELECT * FROM ({stockDataQuery}) WHERE k = 1 UNION ALL SELECT n+1, market_date, adj_close*({k_fast}) + val*(1-{k_fast}) FROM EMA JOIN ({stockDataQuery}) d on EMA.n+1 = d.k) SELECT cdate,val fastval FROM EMA"
+    EMA_fast = f"""WITH EMA (n,cdate,val) AS (SELECT * FROM ({stockDataQuery}) WHERE k = 1 UNION ALL SELECT n+1, market_date, adj_close*({k_fast}) + val*(1-{k_fast}) 
+    FROM EMA JOIN ({stockDataQuery}) d on EMA.n+1 = d.k) 
+    SELECT cdate,val fastval FROM EMA"""
 
     combined_MACD = f"SELECT fast.cdate, fastval, slowval FROM ({EMA_fast}) fast JOIN ({EMA_slow}) slow on fast.cdate = slow.cdate"
 
