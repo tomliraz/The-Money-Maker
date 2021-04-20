@@ -284,7 +284,7 @@ def get_Count():
     connection = pool.acquire()
     cursor = connection.cursor()
 
-    get_count = "SELECT COUNT(*), COUNT(DISTINCT stock_id) FROM LIRAZ.stock_data"
+    get_count = "SELECT COUNT(*) FROM LIRAZ.stock_data"
     
     cursor.execute(get_count)
     r = cursor.fetchall()
