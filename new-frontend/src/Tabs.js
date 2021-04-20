@@ -26,6 +26,7 @@ import {
   KeyboardTimePicker,
   KeyboardDatePicker,
 } from '@material-ui/pickers';
+import ShowDialog from './components/ShowDialog';
 
 const drawerWidth = 240;
 
@@ -229,8 +230,12 @@ export default function SimpleTabs() {
               />
             </div>
           )}
+
+          <ShowDialog value={value} />
         </Grid>
       </MuiPickersUtilsProvider> 
+
+
 
       <TabPanel value={value} index={0}>
         <StockTrend 
