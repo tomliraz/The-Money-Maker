@@ -4,7 +4,6 @@ import TextField from '@material-ui/core/TextField';
 import Grid from '@material-ui/core/Grid';
  
 const baseURL = "http://localhost:8081";
-
 class Seasonal extends React.Component {
 
   constructor (props) {
@@ -73,10 +72,12 @@ class Seasonal extends React.Component {
             id="start-year-input"
             value={this.startYear}
             onChange={(event, newValue) => {
-              this.startYear = event.target.value;
-              this.setState({startYear: this.startYear});
-              var newProps = {...this.props};
-              this.setGraph(newProps);
+              if (event.target.value > 1900){
+                this.startYear = event.target.value;
+                this.setState({startYear: this.startYear});
+                var newProps = {...this.props};
+                this.setGraph(newProps);
+              }
             }}
             type="number"
             margin="dense"
@@ -88,10 +89,10 @@ class Seasonal extends React.Component {
             id="start-year-input"
             value={this.endYear}
             onChange={(event, newValue) => {
-              this.endYear = event.target.value;
-              this.setState({endYear: this.endYear});
-              var newProps = {...this.props};
-              this.setGraph(newProps);
+                this.endYear = event.target.value;
+                this.setState({endYear: this.endYear});
+                var newProps = {...this.props};
+                this.setGraph(newProps);
             }}
             type="number"
             margin="dense"
@@ -103,11 +104,12 @@ class Seasonal extends React.Component {
             label="Start Season"
             id="start-day-input"
             value={this.startDay}
-            onChange={(event, newValue) => {
-              this.startDay = newValue;
+            onChange={(event) => {
+              this.startDay = event.target.value;
               this.setState({startDay: this.startDay});
               var newProps = {...this.props};
               this.setGraph(newProps);
+
             }}
             type="text"
             margin="dense"
@@ -119,8 +121,8 @@ class Seasonal extends React.Component {
             label="End Season"
             id="start-day-input"
             value={this.endDay}
-            onChange={(event, newValue) => {
-              this.endDay = newValue;
+            onChange={(event) => {
+              this.endDay = event.target.value;
               this.setState({endDay: this.endDay});
               var newProps = {...this.props};
               this.setGraph(newProps);
