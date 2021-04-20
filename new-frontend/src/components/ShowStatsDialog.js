@@ -37,7 +37,10 @@ const DialogTitle = withStyles(styles)((props) => {
 });
 
 function numberWithCommas(x) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    if (x)
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    else
+        return "0";
 }
 
 const DialogContent = withStyles((theme) => ({
@@ -83,8 +86,11 @@ export default function CustomizedDialogs() {
           Database Stats
         </DialogTitle>
         <DialogContent dividers>
+          {/* <Typography gutterBottom>
+            There are {numberWithCommas(count[1])} distinct stocks in our database.
+          </Typography> */}
           <Typography gutterBottom>
-            There are {numberWithCommas(count)} tuples in our database.
+            There are {numberWithCommas(count)} total tuples in our database.
           </Typography>
         </DialogContent>
         <DialogActions>
