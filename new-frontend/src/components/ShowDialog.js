@@ -67,7 +67,8 @@ export default function CustomizedDialogs(props) {
 
   return (
     <div>
-      <Button variant="outlined" color="primary" onClick={handleClickOpen}>
+      <Button variant="outlined" color="primary" onClick={handleClickOpen}
+        style={{marginTop: "1em"}}>
         Help
       </Button>
       <Dialog onClose={handleClose} aria-labelledby="customized-dialog-title" open={open}>
