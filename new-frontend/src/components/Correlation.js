@@ -9,7 +9,7 @@ class Correlation extends React.Component {
     super(props);
     this.stockSymbol1 = props.stock1;
     this.stockSymbol2 = props.stock2;
-    this.data = [];
+    this.data = [0,0];
     // console.log(`${baseURL}/correlation/${props.stock1}/${props.stock2}/${props.interval}/${props.start}/${props.end}`);
     this.setGraph = (locProps) => {
       fetch(`${baseURL}/correlation/${locProps.stock1}/${locProps.stock2}/${locProps.interval}/${locProps.start}/${locProps.end}`,

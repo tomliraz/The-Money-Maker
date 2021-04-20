@@ -10,7 +10,7 @@ class Seasonal extends React.Component {
   constructor (props) {
     super(props);
     this.stockSymbol = props.stock;
-    this.data = [];
+    this.data = [0,0];
     this.startYear = 2010;
     this.endYear = 2019;
     this.startDay = "01-01";

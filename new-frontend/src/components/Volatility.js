@@ -10,7 +10,7 @@ class Volatility extends React.Component {
     this.stockSymbol2 = props.stock2;
     this.stockSymbol3 = props.stock3;
     this.interval = props.interval;
-    this.data = [];
+    this.data = [0,0];
 
     this.changeGraph = (locProps) => {
       var fetchUrl = "";

@@ -13,7 +13,7 @@ class MACD extends React.Component {
     this.stockSymbol = props.stock;
     this.slowPeriod = props.slowPeriod;
     this.fastPeriod = props.fastPeriod;
-    this.data = null;
+    this.data = [0,0];
     // console.log(`${baseURL}/macd/${props.stock}/${props.fastPeriod}/${props.slowPeriod}/${props.start}/${props.end}`);
     this.updateGraph = (props) => {
       if (props.stock != ''){
