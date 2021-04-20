@@ -279,17 +279,17 @@ def get_MACD(Stock1, slow, fast, start, stop):
     r.insert(0, ["Date", "Fast MA", "Slow MA"])
     return json.dumps(r, default=datetimeConverter)
 
-
 @app.route('/count')
 def get_Count():
     connection = pool.acquire()
     cursor = connection.cursor()
 
-    get_count = "SELECT COUNT(*) FROM LIRAZ.stock_data"
+    get_count = "SELECT COUNT(*), COUNT(DISTINCT stock_id) FROM LIRAZ.stock_data"
     
     cursor.execute(get_count)
     r = cursor.fetchall()
     return json.dumps(r[0], default=datetimeConverter)
+
 
 if __name__ == '__main__':
     pool = start_pool()
